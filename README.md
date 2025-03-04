@@ -1,2 +1,2 @@
-# IA para la evaluación de nutrición en niños
-El sistema tiene como objetivo desarrollar una plataforma digital para el monitoreo del crecimiento y la nutrición en niños. A través de la recolección automatizada de datos y el análisis mediante modelos de inteligencia artificial, se evaluará el estado nutricional de los niños y se ofrecerán recomendaciones para mejorar su desarrollo.
+# AI for Nutrition Assessment in Children
+The system aims to develop a digital platform for monitoring growth and nutrition in children. Through automated data collection and analysis using artificial intelligence models, the nutritional status of children will be evaluated and recommendations will be offered to improve their development.
