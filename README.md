@@ -1,7 +1,6 @@
 # Child Nutrition Monitoring System  
 
-![Project Status](https://img.shields.io/badge/status-in%20development-yellow)  
-![License](https://img.shields.io/badge/license-MIT-blue)  
+![Project Status](https://img.shields.io/badge/status-in%20development-yellow)
 
 ## Description  
 
