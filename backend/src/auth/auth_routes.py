@@ -1,29 +1,36 @@
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
-import jwt
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from .auth_service import register_user, authenticate_user, refresh_access_token
+from .auth_models import UserCreate
 
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+auth_router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+@auth_router.post("/register")
+async def register(user: UserCreate):
+    result = register_user(user.email, user.password)
+    if result is None:
+        raise HTTPException(status_code=400, detail="User already exists")
+    return result
 
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+@auth_router.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    tokens = authenticate_user(form_data.username, form_data.password)
+    if tokens is None:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return tokens  # Devuelve access y refresh token
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+@auth_router.post("/refresh")
+async def refresh_token(refresh_token: str):
+    new_access_token = refresh_access_token(refresh_token)
+    if new_access_token is None:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    return new_access_token
 
-def create_jwt(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-def decode_jwt(token: str):
-    try:
-        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
+@auth_router.get("/me")
+async def read_users_me(token: str = Depends(oauth2_scheme)):
+    from .auth_utils import decode_jwt
+    payload = decode_jwt(token, "your_secret_key")
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return {"email": payload["sub"]}
