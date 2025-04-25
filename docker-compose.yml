@@ -6,11 +6,8 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
-    environment:
-      - ENV=production
-      - DATABASE_URL=postgresql://user:password@db:5432/nutrition_db
-    depends_on:
-      - db
+    env_file:
+      - .env
     networks:
       - app_network
 
@@ -24,24 +21,5 @@ services:
     networks:
       - app_network
 
-  db:
-    image: postgres:15
-    container_name: db
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: nutrition_db
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    networks:
-      - app_network
-
 networks:
   app_network:
-
-volumes:
-  db_data:
