@@ -1,254 +1,272 @@
-"use client"
-
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { FileText, Download, Printer, Share2, Edit, Eye } from "lucide-react"
-import { VisualizarDocumentoDialog } from "./visualizar-documento-dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { FileText, Upload, Download, Edit, Trash2, Plus, Search, Eye } from "lucide-react"
 
 export function DocumentosConsentimiento() {
-  const [activeDocument, setActiveDocument] = useState<string | null>(null)
-  const [showDocumentViewer, setShowDocumentViewer] = useState(false)
-
-  // Datos de ejemplo para los documentos
-  const documentos = [
-    {
-      id: "doc-1",
-      titulo: "Consentimiento Informado para la Participación en el Estudio",
-      descripcion: "Documento que explica el propósito, procedimientos, riesgos y beneficios del estudio.",
-      version: "1.2",
-      fechaActualizacion: "2023-10-15",
-      tipo: "consentimiento",
-    },
-    {
-      id: "doc-2",
-      titulo:
-        "Autorización para la Recolección, Almacenamiento, Conservación, Publicación y Transferencia de Datos Personales",
-      descripcion: "Documento que autoriza el tratamiento de datos personales del menor.",
-      version: "1.1",
-      fechaActualizacion: "2023-10-15",
-      tipo: "autorizacion",
-    },
-    {
-      id: "doc-3",
-      titulo: "Política de Tratamiento de Datos",
-      descripcion: "Documento que establece los lineamientos para el tratamiento de datos personales.",
-      version: "1.0",
-      fechaActualizacion: "2023-10-15",
-      tipo: "politica",
-    },
-  ]
-
-  const handleViewDocument = (documentId: string) => {
-    setActiveDocument(documentId)
-    setShowDocumentViewer(true)
-  }
-
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Documentos de Consentimiento</CardTitle>
-          <CardDescription>Gestione los documentos de consentimiento utilizados en el sistema</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="consentimiento">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="consentimiento">Consentimiento Informado</TabsTrigger>
-              <TabsTrigger value="autorizacion">Autorización de Datos</TabsTrigger>
-              <TabsTrigger value="politica">Política de Tratamiento</TabsTrigger>
-            </TabsList>
-            <TabsContent value="consentimiento" className="space-y-4 mt-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    Consentimiento Informado para la Participación en el Estudio
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Versión 1.2 • Actualizado el 15/10/2023</p>
+    <Tabs defaultValue="plantillas">
+      <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsTrigger value="plantillas">Plantillas</TabsTrigger>
+        <TabsTrigger value="documentos">Documentos Firmados</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="plantillas">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Plantillas de Consentimiento</CardTitle>
+                <CardDescription>Gestione las plantillas disponibles para los consentimientos</CardDescription>
+              </div>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                <span>Nueva Plantilla</span>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {plantillasData.map((plantilla) => (
+                  <PlantillaCard key={plantilla.id} {...plantilla} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Subir Nueva Plantilla</CardTitle>
+              <CardDescription>Suba un nuevo documento para usar como plantilla</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="nombre-plantilla">Nombre de la plantilla</Label>
+                    <Input id="nombre-plantilla" placeholder="Ej: Consentimiento para evaluación nutricional" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo-plantilla">Tipo de consentimiento</Label>
+                    <Input id="tipo-plantilla" placeholder="Ej: Evaluación Nutricional" />
+                  </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewDocument("doc-1")}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar
-                  </Button>
+
+                <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <h3 className="font-medium">Arrastre y suelte su archivo aquí</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Soporta PDF, DOCX, ODT (máx. 10MB)</p>
+                  <Button variant="outline">Seleccionar archivo</Button>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button>Subir Plantilla</Button>
                 </div>
               </div>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="font-medium">Contenido del documento:</h4>
-                <div className="rounded-md border p-4 bg-muted/50">
-                  <p className="font-semibold">Título del Estudio:</p>
-                  <p className="mb-2">Evaluación Nutricional Infantil mediante Sistema Digital de Monitoreo</p>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
 
-                  <p className="font-semibold">Investigador Principal:</p>
-                  <p className="mb-2">Edwin Alexander Puertas Del Castillo</p>
-
-                  <p className="font-semibold">Introducción y Objetivo:</p>
-                  <p className="mb-2">
-                    El presente estudio tiene como finalidad desarrollar y evaluar un sistema digital para el monitoreo
-                    y análisis del estado nutricional en niños...
-                  </p>
-
-                  <p className="text-sm text-muted-foreground italic">
-                    (Documento resumido. Haga clic en "Visualizar" para ver el documento completo)
-                  </p>
+      <TabsContent value="documentos">
+        <Card>
+          <CardHeader>
+            <CardTitle>Documentos Firmados</CardTitle>
+            <CardDescription>Acceda a todos los documentos de consentimiento firmados</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input type="search" placeholder="Buscar documentos..." className="pl-8" />
                 </div>
+                <Button variant="outline">Filtrar</Button>
               </div>
-            </TabsContent>
-            <TabsContent value="autorizacion" className="space-y-4 mt-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    Autorización para la Recolección, Almacenamiento, Conservación, Publicación y Transferencia de Datos
-                    Personales
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Versión 1.1 • Actualizado el 15/10/2023</p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewDocument("doc-2")}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar
-                  </Button>
-                </div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="font-medium">Contenido del documento:</h4>
-                <div className="rounded-md border p-4 bg-muted/50">
-                  <p className="font-semibold">Autorización:</p>
-                  <p className="mb-2">
-                    Yo, [nombre], identificado(a) con cédula de ciudadanía No. [número], en calidad de representante
-                    legal del menor [nombre del menor], autorizo de manera voluntaria, previa, explícita e informada a
-                    Universidad Tecnológica de Bolívar y a su equipo de investigación, para...
-                  </p>
 
-                  <p className="font-semibold">Compromiso de Protección:</p>
-                  <p className="mb-2">
-                    El tratamiento de los datos se realizará en estricto apego a la Ley 1581 de 2012 y el Decreto 1377
-                    de 2013...
-                  </p>
-
-                  <p className="text-sm text-muted-foreground italic">
-                    (Documento resumido. Haga clic en "Visualizar" para ver el documento completo)
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {documentosData.map((documento) => (
+                  <DocumentoCard key={documento.id} {...documento} />
+                ))}
               </div>
-            </TabsContent>
-            <TabsContent value="politica" className="space-y-4 mt-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Política de Tratamiento de Datos</h3>
-                  <p className="text-sm text-muted-foreground">Versión 1.0 • Actualizado el 15/10/2023</p>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewDocument("doc-3")}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Visualizar
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar
-                  </Button>
-                </div>
-              </div>
-              <Separator />
-              <div className="space-y-2">
-                <h4 className="font-medium">Contenido del documento:</h4>
-                <div className="rounded-md border p-4 bg-muted/50">
-                  <p className="font-semibold">Objetivo:</p>
-                  <p className="mb-2">
-                    Esta política tiene como finalidad establecer los lineamientos para la recolección, almacenamiento,
-                    tratamiento y protección de los datos personales obtenidos en el estudio...
-                  </p>
-
-                  <p className="font-semibold">Alcance y Principios:</p>
-                  <p className="mb-2">
-                    Los datos se recopilarán única y exclusivamente con el consentimiento informado de los
-                    representantes legales, informando claramente el propósito del estudio...
-                  </p>
-
-                  <p className="text-sm text-muted-foreground italic">
-                    (Documento resumido. Haga clic en "Visualizar" para ver el documento completo)
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline">
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimir documentos
-          </Button>
-          <div className="flex space-x-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Editar plantillas
-            </Button>
-            <Button variant="outline">
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartir
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de Versiones</CardTitle>
-          <CardDescription>Registro de cambios en los documentos de consentimiento</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-2 border rounded-md">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Consentimiento Informado v1.2</p>
-                  <p className="text-sm text-muted-foreground">Actualizado el 15/10/2023</p>
-                </div>
-              </div>
-              <p className="text-sm">Se actualizaron los datos de contacto del investigador principal</p>
             </div>
-            <div className="flex items-center justify-between p-2 border rounded-md">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Autorización de Datos v1.1</p>
-                  <p className="text-sm text-muted-foreground">Actualizado el 15/10/2023</p>
-                </div>
-              </div>
-              <p className="text-sm">Se añadieron cláusulas de protección adicionales</p>
-            </div>
-            <div className="flex items-center justify-between p-2 border rounded-md">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Consentimiento Informado v1.1</p>
-                  <p className="text-sm text-muted-foreground">Actualizado el 01/09/2023</p>
-                </div>
-              </div>
-              <p className="text-sm">Se clarificaron los procedimientos de participación</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <VisualizarDocumentoDialog
-        open={showDocumentViewer}
-        onOpenChange={setShowDocumentViewer}
-        documentId={activeDocument}
-        documentos={documentos}
-      />
-    </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   )
 }
 
+interface PlantillaCardProps {
+  id: number
+  nombre: string
+  tipo: string
+  fechaCreacion: string
+  ultimaActualizacion: string
+}
+
+function PlantillaCard({ nombre, tipo, fechaCreacion, ultimaActualizacion }: PlantillaCardProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-base">{nombre}</CardTitle>
+          <FileText className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <CardDescription>{tipo}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-sm text-muted-foreground mb-4">
+          <p>Creado: {fechaCreacion}</p>
+          <p>Actualizado: {ultimaActualizacion}</p>
+        </div>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Eye className="h-3.5 w-3.5" />
+            <span>Ver</span>
+          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon">
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">Editar</span>
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Download className="h-4 w-4" />
+              <span className="sr-only">Descargar</span>
+            </Button>
+            <Button variant="ghost" size="icon" className="text-red-500">
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Eliminar</span>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+interface DocumentoCardProps {
+  id: number
+  codigo: string
+  paciente: string
+  tipo: string
+  fechaFirma: string
+  estado: "firmado" | "pendiente" | "rechazado"
+}
+
+function DocumentoCard({ codigo, paciente, tipo, fechaFirma, estado }: DocumentoCardProps) {
+  const getEstadoBadge = () => {
+    switch (estado) {
+      case "firmado":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+            Firmado
+          </span>
+        )
+      case "pendiente":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">
+            Pendiente
+          </span>
+        )
+      case "rechazado":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+            Rechazado
+          </span>
+        )
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-base">{codigo}</CardTitle>
+          <FileText className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <CardDescription>{paciente}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm">{tipo}</span>
+          {getEstadoBadge()}
+        </div>
+        <div className="text-sm text-muted-foreground mb-4">
+          <p>Firmado: {fechaFirma}</p>
+        </div>
+        <div className="flex items-center justify-between">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Eye className="h-3.5 w-3.5" />
+            <span>Ver</span>
+          </Button>
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Download className="h-3.5 w-3.5" />
+            <span>Descargar</span>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Datos de ejemplo
+const plantillasData = [
+  {
+    id: 1,
+    nombre: "Consentimiento para Evaluación Nutricional",
+    tipo: "Evaluación Nutricional",
+    fechaCreacion: "01/10/2023",
+    ultimaActualizacion: "15/10/2023",
+  },
+  {
+    id: 2,
+    nombre: "Consentimiento para Seguimiento Nutricional",
+    tipo: "Seguimiento Nutricional",
+    fechaCreacion: "05/10/2023",
+    ultimaActualizacion: "20/10/2023",
+  },
+  {
+    id: 3,
+    nombre: "Consentimiento para Intervención Nutricional",
+    tipo: "Intervención Nutricional",
+    fechaCreacion: "10/10/2023",
+    ultimaActualizacion: "25/10/2023",
+  },
+]
+
+const documentosData = [
+  {
+    id: 1,
+    codigo: "CON-2023-089",
+    paciente: "Ana María Rodríguez",
+    tipo: "Evaluación Nutricional",
+    fechaFirma: "15/11/2023",
+    estado: "firmado" as const,
+  },
+  {
+    id: 2,
+    codigo: "CON-2023-090",
+    paciente: "Carlos Mendoza",
+    tipo: "Seguimiento Nutricional",
+    fechaFirma: "14/11/2023",
+    estado: "pendiente" as const,
+  },
+  {
+    id: 3,
+    codigo: "CON-2023-091",
+    paciente: "Lucía Fernández",
+    tipo: "Evaluación Nutricional",
+    fechaFirma: "14/11/2023",
+    estado: "firmado" as const,
+  },
+  {
+    id: 4,
+    codigo: "CON-2023-092",
+    paciente: "Miguel Ángel Torres",
+    tipo: "Intervención Nutricional",
+    fechaFirma: "13/11/2023",
+    estado: "rechazado" as const,
+  },
+]

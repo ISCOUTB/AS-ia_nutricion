@@ -1,318 +1,327 @@
-"use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { Slider } from "@/components/ui/slider"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Save, RefreshCw } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function ConfiguracionConsentimientos() {
-  const form = useForm({
-    defaultValues: {
-      duracionConsentimiento: 12,
-      recordatorioRenovacion: 30,
-      notificacionesEmail: true,
-      notificacionesSistema: true,
-      recordatoriosPendientes: true,
-      almacenamientoDatos: "cifrado",
-      firmaDigital: true,
-      permitirRevocacion: true,
-      plantillaPersonalizada: false,
-    },
-  })
-
-  const onSubmit = (data: any) => {
-    console.log(data)
-    // Aquí iría la lógica para guardar la configuración
-  }
-
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuración de Consentimientos</CardTitle>
-          <CardDescription>
-            Personalice las opciones de gestión de consentimientos según sus necesidades
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium mb-2">Configuración General</h3>
-                <Separator className="mb-4" />
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="duracionConsentimiento"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Duración del consentimiento (meses)</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center space-x-4">
-                            <Slider
-                              min={1}
-                              max={24}
-                              step={1}
-                              defaultValue={[field.value]}
-                              onValueChange={(value) => field.onChange(value[0])}
-                              className="w-[60%]"
-                            />
-                            <span className="w-12 text-center">{field.value}</span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Establece el período de validez de los consentimientos antes de requerir renovación
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="recordatorioRenovacion"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Recordatorio de renovación (días antes)</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center space-x-4">
-                            <Slider
-                              min={1}
-                              max={60}
-                              step={1}
-                              defaultValue={[field.value]}
-                              onValueChange={(value) => field.onChange(value[0])}
-                              className="w-[60%]"
-                            />
-                            <span className="w-12 text-center">{field.value}</span>
-                          </div>
-                        </FormControl>
-                        <FormDescription>
-                          Días antes de la expiración para enviar recordatorios de renovación
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
+    <Tabs defaultValue="general">
+      <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsTrigger value="general">General</TabsTrigger>
+        <TabsTrigger value="notificaciones">Notificaciones</TabsTrigger>
+        <TabsTrigger value="plantillas">Plantillas</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="general">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuración General</CardTitle>
+              <CardDescription>Configure los ajustes generales del módulo de consentimientos</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="prefijo-codigo">Prefijo para códigos de consentimiento</Label>
+                  <Input id="prefijo-codigo" defaultValue="CON-" />
+                  <p className="text-sm text-muted-foreground">
+                    Este prefijo se utilizará para generar los códigos de consentimiento (ej. CON-2023-001)
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="dias-vencimiento">Días para vencimiento de consentimientos</Label>
+                  <Input id="dias-vencimiento" type="number" defaultValue="365" />
+                  <p className="text-sm text-muted-foreground">
+                    Número de días después de los cuales un consentimiento se considera vencido
+                  </p>
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium mb-2">Notificaciones</h3>
-                <Separator className="mb-4" />
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="notificacionesEmail"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Notificaciones por correo electrónico</FormLabel>
-                          <FormDescription>
-                            Enviar notificaciones por correo cuando se requiera firma o renovación
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="notificacionesSistema"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Notificaciones en el sistema</FormLabel>
-                          <FormDescription>
-                            Mostrar notificaciones en el panel de control para los usuarios
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="recordatoriosPendientes"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Recordatorios automáticos</FormLabel>
-                          <FormDescription>
-                            Enviar recordatorios periódicos para consentimientos pendientes
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="switch-recordatorios">Recordatorios automáticos</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Enviar recordatorios automáticos para consentimientos pendientes
+                    </p>
+                  </div>
+                  <Switch id="switch-recordatorios" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="switch-vencimiento">Alertas de vencimiento</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostrar alertas para consentimientos próximos a vencer
+                    </p>
+                  </div>
+                  <Switch id="switch-vencimiento" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="switch-firma-electronica">Firma electrónica</Label>
+                    <p className="text-sm text-muted-foreground">Permitir firma electrónica de consentimientos</p>
+                  </div>
+                  <Switch id="switch-firma-electronica" defaultChecked />
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium mb-2">Seguridad y Privacidad</h3>
-                <Separator className="mb-4" />
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="almacenamientoDatos"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Método de almacenamiento de datos</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="cifrado" />
-                              </FormControl>
-                              <FormLabel className="font-normal">Cifrado de extremo a extremo (recomendado)</FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="estandar" />
-                              </FormControl>
-                              <FormLabel className="font-normal">Almacenamiento estándar</FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormDescription>
-                          Define cómo se almacenarán los datos de consentimiento en el sistema
-                        </FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="firmaDigital"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Habilitar firma digital</FormLabel>
-                          <FormDescription>Permitir la firma digital de documentos de consentimiento</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="permitirRevocacion"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Permitir revocación de consentimiento</FormLabel>
-                          <FormDescription>
-                            Los representantes pueden revocar el consentimiento en cualquier momento
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+              <div className="flex justify-end">
+                <Button>Guardar Cambios</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tipos de Consentimiento</CardTitle>
+              <CardDescription>Gestione los tipos de consentimiento disponibles en el sistema</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                {tiposConsentimiento.map((tipo) => (
+                  <div key={tipo.id} className="flex items-center justify-between border-b pb-4">
+                    <div>
+                      <p className="font-medium">{tipo.nombre}</p>
+                      <p className="text-sm text-muted-foreground">{tipo.descripcion}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        Editar
+                      </Button>
+                      {!tipo.predeterminado && (
+                        <Button variant="outline" size="sm" className="text-red-500">
+                          Eliminar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Añadir nuevo tipo</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="nombre-tipo">Nombre del tipo</Label>
+                    <Input id="nombre-tipo" placeholder="Ej: Consentimiento para evaluación antropométrica" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="codigo-tipo">Código del tipo</Label>
+                    <Input id="codigo-tipo" placeholder="Ej: ANTRO" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="descripcion-tipo">Descripción</Label>
+                  <Textarea id="descripcion-tipo" placeholder="Describa brevemente este tipo de consentimiento" />
+                </div>
+                <div className="flex justify-end">
+                  <Button>Añadir Tipo</Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
 
-              <div>
-                <h3 className="text-lg font-medium mb-2">Personalización</h3>
-                <Separator className="mb-4" />
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="plantillaPersonalizada"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                          <FormLabel>Usar plantillas personalizadas</FormLabel>
-                          <FormDescription>Personalizar las plantillas de documentos de consentimiento</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+      <TabsContent value="notificaciones">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de Notificaciones</CardTitle>
+            <CardDescription>
+              Configure cómo y cuándo se envían las notificaciones relacionadas con consentimientos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Canales de notificación</h3>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="switch-email">Correo electrónico</Label>
+                  <p className="text-sm text-muted-foreground">Enviar notificaciones por correo electrónico</p>
+                </div>
+                <Switch id="switch-email" defaultChecked />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="switch-sms">SMS</Label>
+                  <p className="text-sm text-muted-foreground">Enviar notificaciones por SMS</p>
+                </div>
+                <Switch id="switch-sms" />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="switch-app">Notificaciones en la aplicación</Label>
+                  <p className="text-sm text-muted-foreground">Mostrar notificaciones dentro de la aplicación</p>
+                </div>
+                <Switch id="switch-app" defaultChecked />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Eventos de notificación</h3>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-nuevo">Nuevo consentimiento creado</Label>
+                  <Switch id="switch-nuevo" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-enviado">Consentimiento enviado para firma</Label>
+                  <Switch id="switch-enviado" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-firmado">Consentimiento firmado</Label>
+                  <Switch id="switch-firmado" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-rechazado">Consentimiento rechazado</Label>
+                  <Switch id="switch-rechazado" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-vencimiento-proximo">Vencimiento próximo</Label>
+                  <Switch id="switch-vencimiento-proximo" defaultChecked />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="switch-vencido">Consentimiento vencido</Label>
+                  <Switch id="switch-vencido" defaultChecked />
                 </div>
               </div>
+            </div>
 
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" type="button">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Restaurar valores predeterminados
-                </Button>
-                <Button type="submit">
-                  <Save className="mr-2 h-4 w-4" />
-                  Guardar configuración
-                </Button>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Recordatorios</h3>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="dias-recordatorio">Días antes del vencimiento para enviar recordatorio</Label>
+                  <Input id="dias-recordatorio" type="number" defaultValue="30" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="frecuencia-recordatorio">Frecuencia de recordatorios para pendientes (días)</Label>
+                  <Input id="frecuencia-recordatorio" type="number" defaultValue="3" />
+                </div>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Información Legal</CardTitle>
-          <CardDescription>Información sobre el marco legal y normativo aplicable</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1">
-              <AccordionTrigger>Marco Normativo</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Este sistema opera bajo los principios establecidos en la Ley 1581 de 2012 y el Decreto 1377 de 2013,
-                  que regulan la protección de datos personales en Colombia, con especial énfasis en la protección de
-                  información sensible de menores.
-                </p>
+            <div className="flex justify-end">
+              <Button>Guardar Cambios</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="plantillas">
+        <Card>
+          <CardHeader>
+            <CardTitle>Configuración de Plantillas</CardTitle>
+            <CardDescription>
+              Configure las plantillas de correo electrónico y mensajes para notificaciones
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="select-plantilla">Seleccionar plantilla</Label>
+                <Select defaultValue="nuevo">
+                  <SelectTrigger id="select-plantilla">
+                    <SelectValue placeholder="Seleccione una plantilla" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="nuevo">Nuevo consentimiento</SelectItem>
+                    <SelectItem value="recordatorio">Recordatorio de firma</SelectItem>
+                    <SelectItem value="confirmacion">Confirmación de firma</SelectItem>
+                    <SelectItem value="vencimiento">Aviso de vencimiento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="asunto-plantilla">Asunto</Label>
+                <Input id="asunto-plantilla" defaultValue="Nuevo consentimiento para su firma - [Código]" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contenido-plantilla">Contenido</Label>
+                <Textarea
+                  id="contenido-plantilla"
+                  className="min-h-[200px]"
+                  defaultValue={`Estimado/a [Nombre],
+
+Se ha creado un nuevo consentimiento [Código] que requiere su firma.
+
+Por favor, acceda al siguiente enlace para revisar y firmar el documento:
+[Enlace]
+
+Si tiene alguna pregunta, no dude en contactarnos.
+
+Atentamente,
+El equipo de NutriKids`}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">Variables disponibles:</h4>
                 <p className="text-sm text-muted-foreground">
-                  Todos los consentimientos gestionados a través de esta plataforma cumplen con los requisitos legales
-                  establecidos para el tratamiento de datos personales de menores de edad.
+                  [Nombre], [Código], [Tipo], [Fecha], [Enlace], [DiasRestantes]
                 </p>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2">
-              <AccordionTrigger>Responsabilidades y Acceso</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Solo el equipo de investigación autorizado tendrá acceso a los datos personales, bajo estrictos
-                  controles de acceso.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  El equipo investigador se compromete a cumplir con esta política y a informar a los participantes
-                  sobre cualquier eventualidad relacionada con la seguridad de sus datos.
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-3">
-              <AccordionTrigger>Conservación y Eliminación de Datos</AccordionTrigger>
-              <AccordionContent>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Los datos personales se conservarán únicamente por el tiempo necesario para alcanzar los objetivos del
-                  estudio. Una vez finalizado el estudio, los datos sensibles que no sean necesarios para
-                  investigaciones futuras se eliminarán de forma segura.
-                </p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
-    </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline">Vista previa</Button>
+              <Button>Guardar Plantilla</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   )
 }
 
+// Datos de ejemplo
+const tiposConsentimiento = [
+  {
+    id: 1,
+    nombre: "Evaluación Nutricional",
+    codigo: "EVAL",
+    descripcion: "Consentimiento para realizar evaluación nutricional inicial",
+    predeterminado: true,
+  },
+  {
+    id: 2,
+    nombre: "Seguimiento Nutricional",
+    codigo: "SEG",
+    descripcion: "Consentimiento para realizar seguimiento nutricional periódico",
+    predeterminado: true,
+  },
+  {
+    id: 3,
+    nombre: "Intervención Nutricional",
+    codigo: "INT",
+    descripcion: "Consentimiento para realizar intervención nutricional específica",
+    predeterminado: true,
+  },
+  {
+    id: 4,
+    nombre: "Uso de Datos para Investigación",
+    codigo: "INV",
+    descripcion: "Consentimiento para utilizar datos anonimizados en investigaciones",
+    predeterminado: false,
+  },
+]

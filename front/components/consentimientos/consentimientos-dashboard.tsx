@@ -1,162 +1,204 @@
-"use client"
-
+import type React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, FileText, AlertTriangle, CheckCircle, Clock } from "lucide-react"
-import { NuevoConsentimientoDialog } from "./nuevo-consentimiento-dialog"
-import { useState } from "react"
+import { FileText, Clock, CheckCircle, AlertTriangle, Plus } from "lucide-react"
 
 export function ConsentimientosDashboard() {
-  const [showNuevoConsentimiento, setShowNuevoConsentimiento] = useState(false)
-
-  // Datos de ejemplo para el dashboard
-  const estadisticas = {
-    total: 120,
-    firmados: 98,
-    pendientes: 15,
-    rechazados: 7,
-    porcentajeCompletado: 82,
-    recientes: [
-      { id: "CON-2023-089", nombre: "Ana María Rodríguez", fecha: "2023-11-15", estado: "firmado" },
-      { id: "CON-2023-090", nombre: "Carlos Mendoza", fecha: "2023-11-14", estado: "pendiente" },
-      { id: "CON-2023-091", nombre: "Lucía Fernández", fecha: "2023-11-14", estado: "firmado" },
-      { id: "CON-2023-092", nombre: "Miguel Ángel Torres", fecha: "2023-11-13", estado: "rechazado" },
-    ],
-    porVencer: [
-      { id: "CON-2023-045", nombre: "Valentina Gómez", fecha: "2023-11-30" },
-      { id: "CON-2023-052", nombre: "Santiago Pérez", fecha: "2023-12-01" },
-    ],
-  }
-
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6">
+      {/* Métricas principales */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          title="Total de Consentimientos"
+          value="120"
+          description="Consentimientos registrados en el sistema"
+          icon={<FileText className="h-5 w-5 text-muted-foreground" />}
+        />
+
+        <MetricCard
+          title="Consentimientos Firmados"
+          value="98"
+          description="82% del total completado"
+          icon={<CheckCircle className="h-5 w-5 text-green-500" />}
+          progress={82}
+        />
+
+        <MetricCard
+          title="Pendientes de Firma"
+          value="15"
+          description="Consentimientos en espera de firma"
+          icon={<Clock className="h-5 w-5 text-amber-500" />}
+        />
+
+        <MetricCard
+          title="Consentimientos Rechazados"
+          value="7"
+          description="Requieren seguimiento"
+          icon={<AlertTriangle className="h-5 w-5 text-red-500" />}
+        />
+      </div>
+
+      {/* Consentimientos recientes y por vencer */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Consentimientos Recientes</CardTitle>
+            <CardDescription>Últimos consentimientos registrados en el sistema</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <ConsentimientoItem
+                nombre="Ana María Rodríguez"
+                codigo="CON-2023-089"
+                fecha="2023-11-15"
+                estado="firmado"
+              />
+              <ConsentimientoItem nombre="Carlos Mendoza" codigo="CON-2023-090" fecha="2023-11-14" estado="pendiente" />
+              <ConsentimientoItem nombre="Lucía Fernández" codigo="CON-2023-091" fecha="2023-11-14" estado="firmado" />
+              <ConsentimientoItem
+                nombre="Miguel Ángel Torres"
+                codigo="CON-2023-092"
+                fecha="2023-11-13"
+                estado="rechazado"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consentimientos por Vencer</CardTitle>
+            <CardDescription>Consentimientos que requieren renovación próximamente</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <ConsentimientoVencimiento nombre="Valentina Gómez" codigo="CON-2023-045" vencimiento="2023-11-30" />
+              <ConsentimientoVencimiento nombre="Santiago Pérez" codigo="CON-2023-052" vencimiento="2023-12-01" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Acciones rápidas */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total de Consentimientos</CardTitle>
-          <FileText className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{estadisticas.total}</div>
-          <p className="text-xs text-muted-foreground">Consentimientos registrados en el sistema</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Consentimientos Firmados</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{estadisticas.firmados}</div>
-          <p className="text-xs text-muted-foreground">{estadisticas.porcentajeCompletado}% del total completado</p>
-          <Progress value={estadisticas.porcentajeCompletado} className="mt-2" />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pendientes de Firma</CardTitle>
-          <Clock className="h-4 w-4 text-amber-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{estadisticas.pendientes}</div>
-          <p className="text-xs text-muted-foreground">Consentimientos en espera de firma</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Consentimientos Rechazados</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{estadisticas.rechazados}</div>
-          <p className="text-xs text-muted-foreground">Requieren seguimiento</p>
-        </CardContent>
-      </Card>
-      <Card className="col-span-full md:col-span-2">
         <CardHeader>
-          <CardTitle>Consentimientos Recientes</CardTitle>
-          <CardDescription>Últimos consentimientos registrados en el sistema</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {estadisticas.recientes.map((consentimiento) => (
-              <div key={consentimiento.id} className="flex items-center justify-between p-2 border rounded-md">
-                <div>
-                  <p className="font-medium">{consentimiento.nombre}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {consentimiento.id} • {consentimiento.fecha}
-                  </p>
-                </div>
-                <Badge
-                  className={
-                    consentimiento.estado === "firmado"
-                      ? "bg-green-100 text-green-800 hover:bg-green-100"
-                      : consentimiento.estado === "pendiente"
-                        ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                        : "bg-red-100 text-red-800 hover:bg-red-100"
-                  }
-                >
-                  {consentimiento.estado === "firmado"
-                    ? "Firmado"
-                    : consentimiento.estado === "pendiente"
-                      ? "Pendiente"
-                      : "Rechazado"}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="col-span-full md:col-span-2">
-        <CardHeader>
-          <CardTitle>Consentimientos por Vencer</CardTitle>
-          <CardDescription>Consentimientos que requieren renovación próximamente</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {estadisticas.porVencer.map((consentimiento) => (
-              <div key={consentimiento.id} className="flex items-center justify-between p-2 border rounded-md">
-                <div>
-                  <p className="font-medium">{consentimiento.nombre}</p>
-                  <p className="text-sm text-muted-foreground">{consentimiento.id}</p>
-                </div>
-                <div className="text-sm text-amber-600">Vence: {consentimiento.fecha}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="col-span-full">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Acciones Rápidas</CardTitle>
-            <Button onClick={() => setShowNuevoConsentimiento(true)} size="sm">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Nuevo Consentimiento
-            </Button>
-          </div>
+          <CardTitle>Acciones Rápidas</CardTitle>
           <CardDescription>Gestione rápidamente los consentimientos del sistema</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-24 flex flex-col items-center justify-center">
-              <FileText className="h-8 w-8 mb-2" />
-              Ver Documentos
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Button variant="outline" className="h-24 flex flex-col gap-2 justify-center items-center">
+              <FileText className="h-6 w-6" />
+              <span>Ver Documentos</span>
             </Button>
-            <Button variant="outline" className="h-24 flex flex-col items-center justify-center">
-              <Clock className="h-8 w-8 mb-2" />
-              Pendientes de Firma
+            <Button variant="outline" className="h-24 flex flex-col gap-2 justify-center items-center">
+              <Clock className="h-6 w-6" />
+              <span>Pendientes de Firma</span>
             </Button>
-            <Button variant="outline" className="h-24 flex flex-col items-center justify-center">
-              <AlertTriangle className="h-8 w-8 mb-2" />
-              Gestionar Rechazos
+            <Button variant="outline" className="h-24 flex flex-col gap-2 justify-center items-center">
+              <AlertTriangle className="h-6 w-6" />
+              <span>Gestionar Rechazos</span>
             </Button>
           </div>
         </CardContent>
       </Card>
-      <NuevoConsentimientoDialog open={showNuevoConsentimiento} onOpenChange={setShowNuevoConsentimiento} />
+
+      {/* Botón flotante para nuevo consentimiento */}
+      <div className="fixed bottom-6 right-6">
+        <Button size="lg" className="rounded-full h-14 w-14 shadow-lg">
+          <Plus className="h-6 w-6" />
+          <span className="sr-only">Nuevo Consentimiento</span>
+        </Button>
+      </div>
     </div>
   )
 }
 
+interface MetricCardProps {
+  title: string
+  value: string
+  description: string
+  icon: React.ReactNode
+  progress?: number
+}
+
+function MetricCard({ title, value, description, icon, progress }: MetricCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {progress && <Progress value={progress} className="h-2 mt-2" />}
+      </CardContent>
+    </Card>
+  )
+}
+
+interface ConsentimientoItemProps {
+  nombre: string
+  codigo: string
+  fecha: string
+  estado: "firmado" | "pendiente" | "rechazado"
+}
+
+function ConsentimientoItem({ nombre, codigo, fecha, estado }: ConsentimientoItemProps) {
+  const getEstadoBadge = () => {
+    switch (estado) {
+      case "firmado":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+            Firmado
+          </span>
+        )
+      case "pendiente":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">
+            Pendiente
+          </span>
+        )
+      case "rechazado":
+        return (
+          <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+            Rechazado
+          </span>
+        )
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="font-medium">{nombre}</p>
+        <p className="text-sm text-muted-foreground">
+          {codigo} • {fecha}
+        </p>
+      </div>
+      {getEstadoBadge()}
+    </div>
+  )
+}
+
+interface ConsentimientoVencimientoProps {
+  nombre: string
+  codigo: string
+  vencimiento: string
+}
+
+function ConsentimientoVencimiento({ nombre, codigo, vencimiento }: ConsentimientoVencimientoProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="font-medium">{nombre}</p>
+        <p className="text-sm text-muted-foreground">{codigo}</p>
+      </div>
+      <span className="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100">
+        Vence: {vencimiento}
+      </span>
+    </div>
+  )
+}

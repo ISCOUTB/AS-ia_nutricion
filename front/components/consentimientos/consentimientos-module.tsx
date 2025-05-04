@@ -12,30 +12,29 @@ export function ConsentimientosModule() {
   const [activeTab, setActiveTab] = useState("dashboard")
 
   return (
-    <Tabs defaultValue="dashboard" className="space-y-4" onValueChange={setActiveTab}>
-      <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto">
+    <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-5 mb-8">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="lista">Lista de Consentimientos</TabsTrigger>
         <TabsTrigger value="documentos">Documentos</TabsTrigger>
         <TabsTrigger value="historial">Historial</TabsTrigger>
         <TabsTrigger value="configuracion">Configuración</TabsTrigger>
       </TabsList>
-      <TabsContent value="dashboard" className="space-y-4">
+      <TabsContent value="dashboard">
         <ConsentimientosDashboard />
       </TabsContent>
-      <TabsContent value="lista" className="space-y-4">
+      <TabsContent value="lista">
         <ConsentimientosList />
       </TabsContent>
-      <TabsContent value="documentos" className="space-y-4">
+      <TabsContent value="documentos">
         <DocumentosConsentimiento />
       </TabsContent>
-      <TabsContent value="historial" className="space-y-4">
+      <TabsContent value="historial">
         <HistorialConsentimientos />
       </TabsContent>
-      <TabsContent value="configuracion" className="space-y-4">
+      <TabsContent value="configuracion">
         <ConfiguracionConsentimientos />
       </TabsContent>
     </Tabs>
   )
 }
-

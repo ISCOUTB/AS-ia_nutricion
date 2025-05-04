@@ -1,236 +1,231 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DateRangePicker } from "@/components/date-range-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Search, FileText, Filter, Eye } from "lucide-react"
-import { DateRangePicker } from "@/components/date-range-picker"
-import { DetalleConsentimientoDialog } from "./detalle-consentimiento-dialog"
-import type { DateRange } from "react-day-picker"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Filter, FileText, CheckCircle, Clock, AlertTriangle, MessageSquare } from "lucide-react"
+import { useState } from "react"
 
 export function HistorialConsentimientos() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [showDetalleConsentimiento, setShowDetalleConsentimiento] = useState(false)
-  const [selectedConsentimiento, setSelectedConsentimiento] = useState<any>(null)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
-
-  // Datos de ejemplo para el historial de consentimientos
-  const historialConsentimientos = [
-    {
-      id: "CON-2023-089",
-      nombre: "Ana María Rodríguez",
-      representante: "Carlos Rodríguez",
-      fechaFirma: "2023-11-15",
-      fechaExpiracion: "2024-11-15",
-      estado: "activo",
-      tipo: "Participación en Estudio",
-      eventos: [
-        { fecha: "2023-11-15", accion: "Firmado", usuario: "Carlos Rodríguez" },
-        { fecha: "2023-11-10", accion: "Enviado", usuario: "Sistema" },
-        { fecha: "2023-11-08", accion: "Creado", usuario: "María López (Nutricionista)" },
-      ],
-    },
-    {
-      id: "CON-2023-090",
-      nombre: "Carlos Mendoza",
-      representante: "María Mendoza",
-      fechaFirma: null,
-      fechaExpiracion: null,
-      estado: "pendiente",
-      tipo: "Tratamiento de Datos",
-      eventos: [
-        { fecha: "2023-11-14", accion: "Recordatorio enviado", usuario: "Sistema" },
-        { fecha: "2023-11-10", accion: "Enviado", usuario: "Sistema" },
-        { fecha: "2023-11-09", accion: "Creado", usuario: "Juan Pérez (Administrador)" },
-      ],
-    },
-    {
-      id: "CON-2023-091",
-      nombre: "Lucía Fernández",
-      representante: "Jorge Fernández",
-      fechaFirma: "2023-11-14",
-      fechaExpiracion: "2024-11-14",
-      estado: "activo",
-      tipo: "Participación en Estudio",
-      eventos: [
-        { fecha: "2023-11-14", accion: "Firmado", usuario: "Jorge Fernández" },
-        { fecha: "2023-11-09", accion: "Enviado", usuario: "Sistema" },
-        { fecha: "2023-11-07", accion: "Creado", usuario: "María López (Nutricionista)" },
-      ],
-    },
-    {
-      id: "CON-2023-092",
-      nombre: "Miguel Ángel Torres",
-      representante: "Laura Torres",
-      fechaFirma: null,
-      fechaExpiracion: null,
-      estado: "rechazado",
-      tipo: "Recolección de Datos",
-      eventos: [
-        {
-          fecha: "2023-11-13",
-          accion: "Rechazado",
-          usuario: "Laura Torres",
-          comentario: "No estoy de acuerdo con la cláusula 3.2",
-        },
-        { fecha: "2023-11-08", accion: "Enviado", usuario: "Sistema" },
-        { fecha: "2023-11-06", accion: "Creado", usuario: "Juan Pérez (Administrador)" },
-      ],
-    },
-    {
-      id: "CON-2022-045",
-      nombre: "Valentina Gómez",
-      representante: "Roberto Gómez",
-      fechaFirma: "2022-11-20",
-      fechaExpiracion: "2023-11-20",
-      estado: "por_renovar",
-      tipo: "Participación en Estudio",
-      eventos: [
-        { fecha: "2023-11-10", accion: "Recordatorio de renovación", usuario: "Sistema" },
-        { fecha: "2022-11-20", accion: "Firmado", usuario: "Roberto Gómez" },
-        { fecha: "2022-11-15", accion: "Enviado", usuario: "Sistema" },
-        { fecha: "2022-11-12", accion: "Creado", usuario: "María López (Nutricionista)" },
-      ],
-    },
-  ]
-
-  const filteredHistorial = historialConsentimientos.filter(
-    (consentimiento) =>
-      consentimiento.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      consentimiento.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      consentimiento.representante.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
-
-  const handleViewDetails = (consentimiento: any) => {
-    setSelectedConsentimiento(consentimiento)
-    setShowDetalleConsentimiento(true)
-  }
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined
+    to: Date | undefined
+  }>({
+    from: undefined,
+    to: undefined,
+  })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Historial de Consentimientos</CardTitle>
-        <CardDescription>Registro histórico de todos los consentimientos y sus eventos</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex w-full max-w-sm items-center space-x-2">
-            <Input
-              placeholder="Buscar en historial..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[300px]"
-            />
-            <Button type="submit" size="icon" variant="ghost">
-              <Search className="h-4 w-4" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtros</CardTitle>
+          <CardDescription>Filtre el historial de consentimientos según sus necesidades</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input type="search" placeholder="Buscar..." className="pl-8" />
+            </div>
+
+            <Select defaultValue="todos">
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de evento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los eventos</SelectItem>
+                <SelectItem value="creacion">Creación</SelectItem>
+                <SelectItem value="envio">Envío</SelectItem>
+                <SelectItem value="firma">Firma</SelectItem>
+                <SelectItem value="rechazo">Rechazo</SelectItem>
+                <SelectItem value="comentario">Comentario</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <DateRangePicker date={dateRange} setDate={setDateRange} placeholder="Rango de fechas" />
+
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              <span>Más filtros</span>
             </Button>
           </div>
-          <div className="flex items-center space-x-2">
-            <DateRangePicker date={dateRange} setDate={setDateRange} />
-            <Button variant="outline" size="sm">
-              <Filter className="mr-2 h-4 w-4" />
-              Filtros
-            </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Historial de Eventos</CardTitle>
+          <CardDescription>Registro cronológico de eventos relacionados con los consentimientos</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-8">
+            {/* Día 1 */}
+            <div>
+              <h3 className="font-medium text-lg mb-4">15 de Noviembre, 2023</h3>
+              <div className="space-y-4">
+                <EventoHistorial
+                  tipo="firma"
+                  codigo="CON-2023-089"
+                  paciente="Ana María Rodríguez"
+                  hora="14:35"
+                  descripcion="Consentimiento firmado por el paciente"
+                  comentario="Firmado electrónicamente sin observaciones"
+                />
+
+                <EventoHistorial
+                  tipo="envio"
+                  codigo="CON-2023-093"
+                  paciente="Javier López"
+                  hora="11:20"
+                  descripcion="Consentimiento enviado al paciente para firma"
+                />
+
+                <EventoHistorial
+                  tipo="creacion"
+                  codigo="CON-2023-093"
+                  paciente="Javier López"
+                  hora="10:45"
+                  descripcion="Nuevo consentimiento creado"
+                  comentario="Consentimiento para evaluación nutricional inicial"
+                />
+              </div>
+            </div>
+
+            {/* Día 2 */}
+            <div>
+              <h3 className="font-medium text-lg mb-4">14 de Noviembre, 2023</h3>
+              <div className="space-y-4">
+                <EventoHistorial
+                  tipo="firma"
+                  codigo="CON-2023-091"
+                  paciente="Lucía Fernández"
+                  hora="16:50"
+                  descripcion="Consentimiento firmado por el paciente"
+                />
+
+                <EventoHistorial
+                  tipo="comentario"
+                  codigo="CON-2023-090"
+                  paciente="Carlos Mendoza"
+                  hora="15:30"
+                  descripcion="Comentario añadido al consentimiento"
+                  comentario="El paciente solicita más información antes de firmar"
+                />
+
+                <EventoHistorial
+                  tipo="envio"
+                  codigo="CON-2023-091"
+                  paciente="Lucía Fernández"
+                  hora="14:15"
+                  descripcion="Consentimiento enviado al paciente para firma"
+                />
+
+                <EventoHistorial
+                  tipo="envio"
+                  codigo="CON-2023-090"
+                  paciente="Carlos Mendoza"
+                  hora="14:10"
+                  descripcion="Consentimiento enviado al paciente para firma"
+                />
+
+                <EventoHistorial
+                  tipo="creacion"
+                  codigo="CON-2023-091"
+                  paciente="Lucía Fernández"
+                  hora="13:45"
+                  descripcion="Nuevo consentimiento creado"
+                />
+
+                <EventoHistorial
+                  tipo="creacion"
+                  codigo="CON-2023-090"
+                  paciente="Carlos Mendoza"
+                  hora="13:30"
+                  descripcion="Nuevo consentimiento creado"
+                />
+              </div>
+            </div>
+
+            {/* Día 3 */}
+            <div>
+              <h3 className="font-medium text-lg mb-4">13 de Noviembre, 2023</h3>
+              <div className="space-y-4">
+                <EventoHistorial
+                  tipo="rechazo"
+                  codigo="CON-2023-092"
+                  paciente="Miguel Ángel Torres"
+                  hora="17:20"
+                  descripcion="Consentimiento rechazado por el paciente"
+                  comentario="El paciente no está de acuerdo con los términos del consentimiento"
+                />
+
+                <EventoHistorial
+                  tipo="envio"
+                  codigo="CON-2023-092"
+                  paciente="Miguel Ángel Torres"
+                  hora="15:40"
+                  descripcion="Consentimiento enviado al paciente para firma"
+                />
+
+                <EventoHistorial
+                  tipo="creacion"
+                  codigo="CON-2023-092"
+                  paciente="Miguel Ángel Torres"
+                  hora="15:15"
+                  descripcion="Nuevo consentimiento creado"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Niño/a</TableHead>
-                <TableHead>Representante</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Fecha Firma</TableHead>
-                <TableHead>Expiración</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredHistorial.map((consentimiento) => (
-                <TableRow key={consentimiento.id}>
-                  <TableCell className="font-medium">{consentimiento.id}</TableCell>
-                  <TableCell>{consentimiento.nombre}</TableCell>
-                  <TableCell>{consentimiento.representante}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <FileText className="mr-2 h-4 w-4 text-muted-foreground" />
-                      <span>{consentimiento.tipo}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{consentimiento.fechaFirma || "—"}</TableCell>
-                  <TableCell>{consentimiento.fechaExpiracion || "—"}</TableCell>
-                  <TableCell>
-                    <Badge
-                      className={
-                        consentimiento.estado === "activo"
-                          ? "bg-green-100 text-green-800 hover:bg-green-100"
-                          : consentimiento.estado === "pendiente"
-                            ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
-                            : consentimiento.estado === "rechazado"
-                              ? "bg-red-100 text-red-800 hover:bg-red-100"
-                              : "bg-blue-100 text-blue-800 hover:bg-blue-100"
-                      }
-                    >
-                      {consentimiento.estado === "activo"
-                        ? "Activo"
-                        : consentimiento.estado === "pendiente"
-                          ? "Pendiente"
-                          : consentimiento.estado === "rechazado"
-                            ? "Rechazado"
-                            : "Por renovar"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => handleViewDetails(consentimiento)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="mt-4">
-          <h3 className="text-lg font-medium mb-2">Línea de Tiempo de Eventos</h3>
-          <div className="space-y-4">
-            {historialConsentimientos.slice(0, 3).flatMap((consentimiento) =>
-              consentimiento.eventos.map((evento, index) => (
-                <div key={`${consentimiento.id}-${index}`} className="flex items-start">
-                  <div className="mr-4 flex flex-col items-center">
-                    <div className="h-2 w-2 rounded-full bg-primary"></div>
-                    {index < consentimiento.eventos.length - 1 && <div className="h-10 w-px bg-border"></div>}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">{evento.accion}</p>
-                      <p className="text-xs text-muted-foreground">{evento.fecha}</p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {consentimiento.id} - {consentimiento.nombre} | {evento.usuario}
-                    </p>
-                    {"comentario" in evento && evento.comentario && (
-                      <p className="text-sm italic border-l-2 pl-2 mt-1 border-muted">"{evento.comentario}"</p>
-                    )}
-                  </div>
-                </div>
-              )),
-            )}
-          </div>
-        </div>
-      </CardContent>
-      {selectedConsentimiento && (
-        <DetalleConsentimientoDialog
-          open={showDetalleConsentimiento}
-          onOpenChange={setShowDetalleConsentimiento}
-          consentimiento={selectedConsentimiento}
-        />
-      )}
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
+interface EventoHistorialProps {
+  tipo: "creacion" | "envio" | "firma" | "rechazo" | "comentario"
+  codigo: string
+  paciente: string
+  hora: string
+  descripcion: string
+  comentario?: string
+}
+
+function EventoHistorial({ tipo, codigo, paciente, hora, descripcion, comentario }: EventoHistorialProps) {
+  const getIcono = () => {
+    switch (tipo) {
+      case "creacion":
+        return <FileText className="h-5 w-5 text-blue-500" />
+      case "envio":
+        return <Clock className="h-5 w-5 text-amber-500" />
+      case "firma":
+        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case "rechazo":
+        return <AlertTriangle className="h-5 w-5 text-red-500" />
+      case "comentario":
+        return <MessageSquare className="h-5 w-5 text-purple-500" />
+    }
+  }
+
+  return (
+    <div className="flex gap-4">
+      <div className="flex-shrink-0 mt-1">{getIcono()}</div>
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="font-medium">{codigo}</span>
+            <span className="mx-2">•</span>
+            <span>{paciente}</span>
+          </div>
+          <span className="text-sm text-muted-foreground">{hora}</span>
+        </div>
+        <p className="text-sm mt-1">{descripcion}</p>
+        {comentario && <div className="mt-2 p-3 bg-muted rounded-md text-sm">{comentario}</div>}
+      </div>
+    </div>
+  )
+}
