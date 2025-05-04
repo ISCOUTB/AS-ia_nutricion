@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function ConfiguracionNotificaciones() {
+  const { toast } = useCustomToast()
+
   const [notifications, setNotifications] = useState({
     email: {
       enabled: true,
@@ -41,8 +43,6 @@ export function ConfiguracionNotificaciones() {
     },
     digest: "daily",
   })
-
-  const { toast } = useToast()
 
   const handleToggle = (category: string, type: string, value: boolean) => {
     setNotifications((prev) => ({
@@ -88,6 +88,7 @@ export function ConfiguracionNotificaciones() {
     toast({
       title: "Configuración guardada",
       description: "Tus preferencias de notificaciones han sido actualizadas.",
+      variant: "success",
     })
   }
 

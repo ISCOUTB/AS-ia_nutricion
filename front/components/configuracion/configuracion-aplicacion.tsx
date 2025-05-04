@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModeToggle } from "../mode-toggle"
 
 export function ConfiguracionAplicacion() {
+  const { toast } = useCustomToast()
+
   const [settings, setSettings] = useState({
     theme: "system",
     fontSize: 16,
@@ -25,8 +27,6 @@ export function ConfiguracionAplicacion() {
     colorScheme: "default",
   })
 
-  const { toast } = useToast()
-
   const handleChange = (key: string, value: any) => {
     setSettings((prev) => ({ ...prev, [key]: value }))
   }
@@ -35,6 +35,7 @@ export function ConfiguracionAplicacion() {
     toast({
       title: "Configuración guardada",
       description: "Los cambios de apariencia han sido aplicados.",
+      variant: "success",
     })
   }
 

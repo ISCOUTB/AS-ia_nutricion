@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
@@ -13,6 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Download, Upload, Database, Save, AlertTriangle, FileText, RefreshCw } from "lucide-react"
 
 export function ConfiguracionDatos() {
+  const { toast } = useCustomToast()
+
   const [settings, setSettings] = useState({
     autoBackup: true,
     backupFrequency: "daily",
@@ -23,8 +25,6 @@ export function ConfiguracionDatos() {
     lastBackup: "2023-04-20T14:30:00",
     dataFormat: "json",
   })
-
-  const { toast } = useToast()
 
   const [importProgress, setImportProgress] = useState(0)
   const [exportProgress, setExportProgress] = useState(0)
@@ -39,6 +39,7 @@ export function ConfiguracionDatos() {
     toast({
       title: "Configuración guardada",
       description: "La configuración de datos ha sido actualizada.",
+      variant: "success",
     })
   }
 
@@ -55,6 +56,7 @@ export function ConfiguracionDatos() {
           toast({
             title: "Importación completada",
             description: "Los datos han sido importados correctamente.",
+            variant: "success",
           })
           return 100
         }
@@ -76,6 +78,7 @@ export function ConfiguracionDatos() {
           toast({
             title: "Exportación completada",
             description: "Los datos han sido exportados correctamente.",
+            variant: "success",
           })
           return 100
         }
@@ -95,6 +98,7 @@ export function ConfiguracionDatos() {
       toast({
         title: "Respaldo completado",
         description: "El respaldo manual ha sido completado exitosamente.",
+        variant: "success",
       })
 
       setSettings((prev) => ({

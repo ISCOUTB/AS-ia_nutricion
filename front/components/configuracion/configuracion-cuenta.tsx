@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
 import { AlertCircle, Camera, Mail, Phone, User } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export function ConfiguracionCuenta() {
-  const { toast } = useToast()
+  const { toast } = useCustomToast()
+
   const [profile, setProfile] = useState({
     name: "Juan Pérez",
     email: "juan.perez@ejemplo.com",
@@ -39,6 +40,7 @@ export function ConfiguracionCuenta() {
     toast({
       title: "Perfil actualizado",
       description: "Tu información de perfil ha sido actualizada correctamente.",
+      variant: "success",
     })
   }
 
@@ -65,6 +67,7 @@ export function ConfiguracionCuenta() {
     toast({
       title: "Contraseña actualizada",
       description: "Tu contraseña ha sido actualizada correctamente.",
+      variant: "success",
     })
 
     setPassword({

@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Link, Globe, Mail, MessageSquare, FileText, Database, Cloud, AlertCircle, Check, X } from "lucide-react"
 
 export function ConfiguracionIntegracion() {
+  const { toast } = useCustomToast()
+
   const [integrations, setIntegrations] = useState({
     email: {
       enabled: true,
@@ -54,8 +56,6 @@ export function ConfiguracionIntegracion() {
     },
   })
 
-  const { toast } = useToast()
-
   const handleToggle = (integration: string, enabled: boolean) => {
     setIntegrations((prev) => ({
       ...prev,
@@ -95,6 +95,7 @@ export function ConfiguracionIntegracion() {
       toast({
         title: "Conexión establecida",
         description: `La integración con ${integration} se ha configurado correctamente.`,
+        variant: "success",
       })
     }, 1500)
   }
@@ -111,6 +112,7 @@ export function ConfiguracionIntegracion() {
     toast({
       title: "Desconectado",
       description: `La integración con ${integration} ha sido desconectada.`,
+      variant: "destructive",
     })
   }
 
@@ -118,6 +120,7 @@ export function ConfiguracionIntegracion() {
     toast({
       title: "Configuración guardada",
       description: "La configuración de integraciones ha sido actualizada.",
+      variant: "success",
     })
   }
 
