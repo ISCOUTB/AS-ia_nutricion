@@ -1,176 +1,197 @@
 "use client"
 
-import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/components/ui/use-toast"
+import { useCustomToast } from "@/components/ui/custom-toast"
+
+const formSchema = z.object({
+  organizationName: z.string().min(2, {
+    message: "El nombre de la organización debe tener al menos 2 caracteres.",
+  }),
+  language: z.string({
+    required_error: "Por favor selecciona un idioma.",
+  }),
+  timezone: z.string({
+    required_error: "Por favor selecciona una zona horaria.",
+  }),
+  dateFormat: z.string({
+    required_error: "Por favor selecciona un formato de fecha.",
+  }),
+  enableAnalytics: z.boolean().default(true),
+  enableNotifications: z.boolean().default(true),
+})
 
 export function ConfiguracionGeneral() {
-  const [settings, setSettings] = useState({
-    language: "es",
-    timezone: "America/Bogota",
-    dateFormat: "DD/MM/YYYY",
-    timeFormat: "24h",
-    enableAnalytics: true,
-    enableTelemetry: false,
-    autoSave: true,
-    autoSaveInterval: "5",
+  const { toast } = useCustomToast()
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      organizationName: "Centro Nutricional Infantil",
+      language: "es",
+      timezone: "America/Mexico_City",
+      dateFormat: "DD/MM/YYYY",
+      enableAnalytics: true,
+      enableNotifications: true,
+    },
   })
 
-  const { toast } = useToast()
-
-  const handleChange = (key: string, value: string | boolean) => {
-    setSettings((prev) => ({ ...prev, [key]: value }))
-  }
-
-  const handleSave = () => {
-    // Aquí iría la lógica para guardar la configuración
-    toast({
-      title: "Configuración guardada",
-      description: "Los cambios han sido guardados correctamente.",
-    })
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Simulación de guardado
+    setTimeout(() => {
+      console.log(values)
+      toast({
+        title: "Configuración guardada",
+        description: "La configuración general ha sido actualizada correctamente.",
+        variant: "success",
+      })
+    }, 500)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Preferencias regionales</h3>
-        <Separator />
+    <Card>
+      <CardHeader>
+        <CardTitle>Configuración General</CardTitle>
+        <CardDescription>Configura los ajustes básicos de tu organización y preferencias del sistema.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="organizationName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre de la Organización</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nombre de tu organización" {...field} />
+                  </FormControl>
+                  <FormDescription>Este nombre aparecerá en reportes y documentos oficiales.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="language">Idioma</Label>
-            <Select value={settings.language} onValueChange={(value) => handleChange("language", value)}>
-              <SelectTrigger id="language">
-                <SelectValue placeholder="Seleccionar idioma" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="es">Español</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="pt">Português</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="timezone">Zona horaria</Label>
-            <Select value={settings.timezone} onValueChange={(value) => handleChange("timezone", value)}>
-              <SelectTrigger id="timezone">
-                <SelectValue placeholder="Seleccionar zona horaria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="America/Bogota">Bogotá (GMT-5)</SelectItem>
-                <SelectItem value="America/Mexico_City">Ciudad de México (GMT-6)</SelectItem>
-                <SelectItem value="America/Santiago">Santiago (GMT-4)</SelectItem>
-                <SelectItem value="America/Buenos_Aires">Buenos Aires (GMT-3)</SelectItem>
-                <SelectItem value="Europe/Madrid">Madrid (GMT+1)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="dateFormat">Formato de fecha</Label>
-            <Select value={settings.dateFormat} onValueChange={(value) => handleChange("dateFormat", value)}>
-              <SelectTrigger id="dateFormat">
-                <SelectValue placeholder="Seleccionar formato" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="timeFormat">Formato de hora</Label>
-            <Select value={settings.timeFormat} onValueChange={(value) => handleChange("timeFormat", value)}>
-              <SelectTrigger id="timeFormat">
-                <SelectValue placeholder="Seleccionar formato" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">24 horas</SelectItem>
-                <SelectItem value="12h">12 horas (AM/PM)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Privacidad y datos</h3>
-        <Separator />
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="analytics">Análisis de uso</Label>
-            <p className="text-sm text-muted-foreground">
-              Permitir recopilar datos anónimos para mejorar la aplicación
-            </p>
-          </div>
-          <Switch
-            id="analytics"
-            checked={settings.enableAnalytics}
-            onCheckedChange={(checked) => handleChange("enableAnalytics", checked)}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="telemetry">Telemetría</Label>
-            <p className="text-sm text-muted-foreground">Enviar informes de errores y diagnóstico</p>
-          </div>
-          <Switch
-            id="telemetry"
-            checked={settings.enableTelemetry}
-            onCheckedChange={(checked) => handleChange("enableTelemetry", checked)}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Guardado automático</h3>
-        <Separator />
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="autoSave">Guardar automáticamente</Label>
-            <p className="text-sm text-muted-foreground">Guardar cambios automáticamente mientras trabajas</p>
-          </div>
-          <Switch
-            id="autoSave"
-            checked={settings.autoSave}
-            onCheckedChange={(checked) => handleChange("autoSave", checked)}
-          />
-        </div>
-
-        {settings.autoSave && (
-          <div className="space-y-2">
-            <Label htmlFor="autoSaveInterval">Intervalo de guardado (minutos)</Label>
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input
-                id="autoSaveInterval"
-                type="number"
-                value={settings.autoSaveInterval}
-                onChange={(e) => handleChange("autoSaveInterval", e.target.value)}
-                min="1"
-                max="60"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Idioma</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona un idioma" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="en">Inglés</SelectItem>
+                        <SelectItem value="pt">Portugués</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <span className="text-sm text-muted-foreground">minutos</span>
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>Guardar cambios</Button>
-      </div>
-    </div>
+              <FormField
+                control={form.control}
+                name="timezone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Zona Horaria</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una zona horaria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="America/Mexico_City">Ciudad de México (GMT-6)</SelectItem>
+                        <SelectItem value="America/Bogota">Bogotá (GMT-5)</SelectItem>
+                        <SelectItem value="America/Santiago">Santiago (GMT-4)</SelectItem>
+                        <SelectItem value="America/Buenos_Aires">Buenos Aires (GMT-3)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="dateFormat"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Formato de Fecha</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un formato de fecha" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="enableAnalytics"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Análisis y Estadísticas</FormLabel>
+                      <FormDescription>Habilitar recopilación de datos para análisis y mejoras.</FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="enableNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Notificaciones del Sistema</FormLabel>
+                      <FormDescription>Recibir alertas y notificaciones importantes.</FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Button type="submit">Guardar Cambios</Button>
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter className="border-t bg-muted/50 p-6 text-sm text-muted-foreground">
+        Los cambios en la configuración general se aplicarán a todos los usuarios del sistema.
+      </CardFooter>
+    </Card>
   )
 }

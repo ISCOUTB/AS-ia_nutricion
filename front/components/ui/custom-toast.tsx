@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useState } from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -85,7 +84,8 @@ function Toast({ id, title, description, variant = "default", onDismiss }: Toast
         "flex w-full max-w-md overflow-hidden rounded-lg shadow-lg transition-all animate-in slide-in-from-right-full",
         "border p-4",
         variant === "destructive" && "bg-destructive text-destructive-foreground border-destructive",
-        variant === "success" && "bg-green-50 border-green-200 text-green-800",
+        variant === "success" &&
+          "bg-green-50 border-green-200 text-green-800 dark:bg-green-900 dark:border-green-800 dark:text-green-100",
         variant === "default" && "bg-background border-border",
       )}
     >
@@ -99,7 +99,7 @@ function Toast({ id, title, description, variant = "default", onDismiss }: Toast
           "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
           "transition-colors hover:bg-secondary",
           variant === "destructive" && "hover:bg-destructive/90",
-          variant === "success" && "hover:bg-green-100",
+          variant === "success" && "hover:bg-green-100 dark:hover:bg-green-800",
         )}
       >
         <X className="h-4 w-4" />
