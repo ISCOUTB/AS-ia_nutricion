@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
+from datetime import datetime
+
 
 load_dotenv()
 
@@ -12,3 +14,11 @@ try:
     print("Conexión exitosa a MongoDB")
 except Exception as e:
     print("Error de conexión:", e)
+    
+db = client["Nutrikids"]
+
+collections = [
+    "roles", "users", "audit_log", "child",
+    "medical_history", "anthropometry", "behavioral_data",
+    "household", "classification_result"
+]
