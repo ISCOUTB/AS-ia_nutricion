@@ -19,3 +19,8 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Configure Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # Cambia esto a la versión que necesites
+
