@@ -1,10 +1,11 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
+import os
 
-SECRET_KEY = "your_secret_key"
-REFRESH_SECRET_KEY = "your_refresh_secret_key"  # Clave separada para refresh tokens
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+REFRESH_SECRET_KEY = os.getenv("REFRESH_SECRETKEY")  # Clave separada para refresh tokens
+ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Expira rápido
 REFRESH_TOKEN_EXPIRE_DAYS = 7  # Dura más tiempo
 
