@@ -7,6 +7,8 @@ from schemas.medical_history_schema import medical_history_schema
 from schemas.anthropometric_data_schema import anthropometric_data_schema
 from schemas.behavioral_data_schema import behavioral_data_schema
 from schemas.classification_result_schema import classification_result_schema
+from schemas.audit_log_schema import audit_log_schema
+from schemas.household_schema import household_schema
 
 # Diccionario de nombres de colección y sus respectivos esquemas
 COLLECTION_SCHEMAS = {
@@ -17,6 +19,8 @@ COLLECTION_SCHEMAS = {
     "datos_antropometricos": anthropometric_data_schema,
     "datos_conductuales": behavioral_data_schema,
     "resultados_clasificacion": classification_result_schema,
+    "audit_log": audit_log_schema,
+    "household": household_schema
 }
 
 
