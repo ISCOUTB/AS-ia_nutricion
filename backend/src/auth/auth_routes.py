@@ -1,51 +1,40 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from .auth_service import register_user, authenticate_user, refresh_access_token
-from .auth_models import UserCreate, Token
-from db.database import db
-from db.models.user import User
-from .auth_utils import decode_jwt
-import os
-from bson import ObjectId
+from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from . import auth_service
+from .auth_models import UserRegister, UserLogin, Token
+from typing import Dict
 
-auth_router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-usuarios_collection = db["usuarios"]
-SECRET_KEY = os.getenv("SECRET_KEY")
+auth_router = APIRouter(prefix="/auth", tags=["Autenticación"])
 
-@auth_router.post("/register", response_model=dict)
-async def register(user: UserCreate):
-    result = register_user(user.email, user.password)
-    if result is None:
-        raise HTTPException(status_code=400, detail="User already exists")
+# Ruta de registro
+@auth_router.post("/register", response_model=Dict[str, str])
+def register(user_data: UserRegister):
+    result = auth_service.register_user(user_data.email, user_data.password)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El correo ya está registrado"
+        )
     return result
 
+# Ruta de login con OAuth2PasswordRequestForm (formulario estándar)
 @auth_router.post("/login", response_model=Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    tokens = authenticate_user(form_data.username, form_data.password)
-    if tokens is None:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    return tokens  # access_token, refresh_token, token_type
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    result = auth_service.authenticate_user(form_data.username, form_data.password)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales incorrectas"
+        )
+    return result
 
+# Ruta para renovar token usando refresh token
 @auth_router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token: str = Body(..., embed=True)):
-    new_access_token = refresh_access_token(refresh_token)
-    if new_access_token is None:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-    return new_access_token
-
-@auth_router.get("/me", response_model=User)
-async def read_users_me(token: str = Depends(oauth2_scheme)):
-    payload = decode_jwt(token, SECRET_KEY)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-
-    user_data = usuarios_collection.find_one({"_id": ObjectId(user_id)})
-    if not user_data:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    return User(**user_data)
+def refresh_token(refresh_token: str):
+    result = auth_service.refresh_access_token(refresh_token)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de refresco inválido o expirado"
+        )
+    return result
