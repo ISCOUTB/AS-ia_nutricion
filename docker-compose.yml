@@ -11,8 +11,9 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./db:/app/db
-    depends_on:
-      - db
+    environment:
+      - PYTHONPATH=/app:/app/backend:/app/db
+    working_dir: /app/backend
 
   api-gateway:
     build: ./api-gateway

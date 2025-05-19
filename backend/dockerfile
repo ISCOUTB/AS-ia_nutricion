@@ -2,11 +2,14 @@
 FROM python:3.12-slim
 
 # Establecemos el directorio de trabajo dentro del contenedor
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copiamos los archivos de requisitos e instalamos las dependencias
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# importar el módulo db
+ENV PYTHONPATH=/app:/app/backend:/app/db
 
 # Copiamos el código del backend
 COPY . .
