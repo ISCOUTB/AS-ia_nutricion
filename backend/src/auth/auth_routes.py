@@ -6,6 +6,7 @@ from db.database import db
 from db.models.user import User
 from .auth_utils import decode_jwt
 import os
+from bson import ObjectId
 
 auth_router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -43,7 +44,7 @@ async def read_users_me(token: str = Depends(oauth2_scheme)):
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
-    user_data = usuarios_collection.find_one({"_id": db.ObjectId(user_id)})
+    user_data = usuarios_collection.find_one({"_id": ObjectId(user_id)})
     if not user_data:
         raise HTTPException(status_code=404, detail="User not found")
 

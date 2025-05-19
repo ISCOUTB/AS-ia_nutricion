@@ -2,7 +2,7 @@ from db.database import db
 from db.models.user import User
 from .auth_utils import hash_password, verify_password, create_access_token, create_refresh_token, verify_refresh_token
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 usuarios_collection = db["usuarios"]
 
@@ -11,17 +11,19 @@ def register_user(email: str, password: str):
     if usuarios_collection.find_one({"email": email}):
         return None  # Usuario ya existe
 
-    user = {
-        "email": email,
-        "password_hash": hash_password(password),
-        "created_at": datetime.now(),
-        "is_active": True,
-        # Puedes asignar un rol por defecto (ej: 'nutricionista') si lo deseas
-        "role_id": None  # Si luego quieres relacionarlo
-    }
-
-    result = usuarios_collection.insert_one(user)
-    return {"message": "Usuario registrado", "user_id": str(result.inserted_id)}
+    try:
+        user_data = User(
+            email=email,
+            password_hash=hash_password(password),
+            created_at=datetime.now(timezone.utc),
+            is_active=True,
+            role_id=None  # O ObjectId(...) si tienes un rol por defecto
+        )
+        result = usuarios_collection.insert_one(user_data.dict(by_alias=True, exclude={"id"}))
+        return {"message": "Usuario registrado", "user_id": str(result.inserted_id)}
+    except Exception as e:
+        print(f"Error al registrar usuario: {e}")
+        return None
 
 def authenticate_user(email: str, password: str):
     user = usuarios_collection.find_one({"email": email})
