@@ -49,7 +49,7 @@ async def test_login_user():
 
 @pytest.mark.asyncio
 async def test_login_invalid_password():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post("/auth/login", data={
             "username": "testuser@example.com",
             "password": "WrongPassword"
@@ -59,7 +59,7 @@ async def test_login_invalid_password():
 
 @pytest.mark.asyncio
 async def test_refresh_token():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         # Login primero para obtener refresh token
         login_resp = await client.post("/auth/login", data={
             "username": "testuser@example.com",
@@ -76,7 +76,7 @@ async def test_refresh_token():
 
 @pytest.mark.asyncio
 async def test_me_with_valid_token():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         login_resp = await client.post("/auth/login", data={
             "username": "testuser@example.com",
             "password": "TestPassword123"
@@ -91,7 +91,7 @@ async def test_me_with_valid_token():
 
 @pytest.mark.asyncio
 async def test_me_with_invalid_token():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.get("/auth/me", headers={
             "Authorization": "Bearer invalidtoken"
         })
