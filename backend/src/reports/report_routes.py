@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from report_models import ReporteIndividual, ReporteGrupal
-from report_service import generar_reporte_individual, generar_reporte_grupal
+from .report_models import ReporteIndividual, ReporteGrupal
+from .report_service import generar_reporte_individual, generar_reporte_grupal
 
 report_router = APIRouter(prefix="/reports", tags=["Reportes"])
 

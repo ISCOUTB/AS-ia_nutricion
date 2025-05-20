@@ -2,7 +2,7 @@ from db.database import db
 from bson import ObjectId
 from datetime import datetime
 from typing import List, Dict
-from report_models import ReporteIndividual, ReporteGrupal
+from .report_models import ReporteIndividual, ReporteGrupal
 
 # Referencias a las colecciones relevantes
 children_col = db["ninos"]

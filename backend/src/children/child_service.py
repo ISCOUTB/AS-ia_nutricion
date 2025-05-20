@@ -1,6 +1,6 @@
 from db.database import db
 from bson import ObjectId, errors
-from child_models import ChildCreate, ChildUpdate, ChildInResponse
+from .child_models import ChildCreate, ChildUpdate, ChildInResponse
 from typing import Optional, List
 
 # Conexión a la colección de niños

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from child_models import ChildCreate, ChildUpdate, ChildInResponse
-from child_service import (
+from .child_models import ChildCreate, ChildUpdate, ChildInResponse
+from .child_service import (
     create_child,
     get_all_children,
     get_child_by_id,

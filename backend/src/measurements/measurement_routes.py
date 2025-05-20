@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
-from measurement_models import Measurement
-from measurement_service import (
+from .measurement_models import Measurement
+from .measurement_service import (
     create_measurement,
     get_all_measurements,
     get_measurements_by_child,

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, GetJsonSchemaHandler
 from datetime import date
 from typing import Optional
 from bson import ObjectId
@@ -19,8 +19,10 @@ class PyObjectId(ObjectId):
         raise ValueError("ID no válido para ObjectId")
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+    def __get_pydantic_json_schema__(cls, core_schema, handler: GetJsonSchemaHandler):
+        json_schema = handler(core_schema)
+        json_schema.update(type="string")
+        return json_schema
 
 
 class AnthropometricDataCreate(BaseModel):
@@ -35,6 +37,6 @@ class AnthropometricDataInDB(AnthropometricDataCreate):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
 
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}

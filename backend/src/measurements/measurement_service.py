@@ -1,7 +1,7 @@
 from db.database import db
 from bson import ObjectId
 from typing import Optional, List
-from measurement_models import Measurement
+from .measurement_models import Measurement
 
 measurements_collection = db["datos_antropometricos"]
 
