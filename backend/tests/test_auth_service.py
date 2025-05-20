@@ -15,7 +15,7 @@ def setup_test_user():
 
 @pytest.mark.asyncio
 async def test_register_user():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post("/auth/register", json={
             "email": "testuser@example.com",
             "password": "TestPassword123"
@@ -25,7 +25,7 @@ async def test_register_user():
 
 @pytest.mark.asyncio
 async def test_register_existing_user():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         # Intenta registrar el mismo usuario otra vez
         response = await client.post("/auth/register", json={
             "email": "testuser@example.com",
@@ -36,7 +36,7 @@ async def test_register_existing_user():
 
 @pytest.mark.asyncio
 async def test_login_user():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://localhost:8000") as client:
         response = await client.post("/auth/login", data={
             "username": "testuser@example.com",
             "password": "TestPassword123"
