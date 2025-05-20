@@ -1,13 +1,14 @@
 from pydantic import BaseModel, Field, GetJsonSchemaHandler
 from datetime import date
-from typing import Optional
+from typing import Optional, Any
 from bson import ObjectId
+from pydantic_core import core_schema
 
 # === PyObjectId para compatibilidad con MongoDB ===
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> core_schema.CoreSchema:
+        return core_schema.no_info_plain_validator_function(cls.validate)
     @classmethod
     def validate(cls, v):
         if isinstance(v, ObjectId):
@@ -16,10 +17,11 @@ class PyObjectId(ObjectId):
             return ObjectId(v)
         raise ValueError("ID no válido para ObjectId")
     @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema, handler: GetJsonSchemaHandler):
-        json_schema = handler(core_schema)
-        json_schema.update(type="string")
-        return json_schema
+    def __get_pydantic_json_schema__(cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler) -> dict:
+        return {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+        }
 
 # === Modelo base (para respuestas o updates parciales) ===
 class ChildBase(BaseModel):
@@ -60,8 +62,10 @@ class ChildUpdate(ChildBase):
 # === Modelo completo para respuesta desde la DB ===
 class ChildInResponse(ChildCreate):
     id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
-
+    
     class Config:
-        validate_by_name = True
-        json_encoders = {ObjectId: str}
+        populate_by_name = True
         arbitrary_types_allowed = True
+        json_encoders = {
+            ObjectId: str,
+        }
