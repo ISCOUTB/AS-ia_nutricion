@@ -22,5 +22,5 @@ jobs:
       - name: Configure Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'  # Cambia esto a la versión que necesites
+          python-version: '3.12'  # Cambia esto a la versión que necesites
 
