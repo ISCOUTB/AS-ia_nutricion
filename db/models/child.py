@@ -35,10 +35,12 @@ class ChildCreate(BaseModel):
     fecha_nacimiento: date
     sexo: str  # 'M' o 'F'
     direccion: str
-    nombre_acudiente: str
-    telefono_acudiente: str
     institucion: Optional[str] = None
     barrio: Optional[str] = None
+    nombre_acudiente: str
+    parentesco_acudiente: Optional[str] = None
+    telefono_acudiente: str
+    consentimiento_informado: bool = False
 
 
 class ChildInDB(ChildCreate):

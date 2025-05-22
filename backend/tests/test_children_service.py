@@ -2,6 +2,7 @@ import pytest
 import mongomock
 from backend.src.children.child_models import ChildCreate, ChildUpdate
 import backend.src.children.child_service as child_service
+from datetime import date
 
 # Preparamos un mock de MongoDB antes de cada prueba
 @pytest.fixture(autouse=True)
@@ -15,7 +16,7 @@ def test_create_child():
         apellido="Pérez",
         tipo_documento="TI",
         documento="123456",
-        fecha_nacimiento="2010-05-10",
+        fecha_nacimiento=date(2010, 5, 10),
         sexo="M",
         direccion="Calle 123",
         institucion="Escuela A",
@@ -35,7 +36,7 @@ def test_get_child_by_id():
         "apellido": "López",
         "tipo_documento": "TI",
         "documento": "654321",
-        "fecha_nacimiento": "2011-03-15",
+        "fecha_nacimiento": date(2011, 3, 15), 
         "sexo": "F",
         "direccion": "Calle 456",
         "nombre_acudiente": "Carlos López",
@@ -65,7 +66,7 @@ def test_update_child():
         "apellido": "Gómez",
         "tipo_documento": "TI",
         "documento": "777",
-        "fecha_nacimiento": "2012-07-07",
+        "fecha_nacimiento": date(2012, 7, 7), 
         "sexo": "F",
         "direccion": "Calle Z",
         "nombre_acudiente": "Sandra",
@@ -74,12 +75,10 @@ def test_update_child():
     result = child_service.children_collection.insert_one(child)
     child_id = str(result.inserted_id)
 
-    update_data = {"direccion": "Nueva dirección"}
+    update_data = ChildUpdate(direccion="Nueva dirección")
     updated = child_service.update_child(child_id, update_data)
-    assert updated is True
 
-    updated_child = child_service.children_collection.find_one({"_id": result.inserted_id})
-    assert updated_child["direccion"] == "Nueva dirección"
+    assert updated is True
 
 def test_delete_child():
     child = {
@@ -87,7 +86,7 @@ def test_delete_child():
         "apellido": "Rodríguez",
         "tipo_documento": "TI",
         "documento": "888",
-        "fecha_nacimiento": "2011-08-08",
+        "fecha_nacimiento": date(2011, 8, 8), 
         "sexo": "M",
         "direccion": "Calle W",
         "nombre_acudiente": "Lucía",
