@@ -1,0 +1,3 @@
+[run]
+source = backend/src
+relative_files = true
