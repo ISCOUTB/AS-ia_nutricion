@@ -1,0 +1,7 @@
+[tool.sonar]
+projectKey = "ISCOUTB_AS-ia_nutricion"
+projectName = "Child Nutrition Backend"
+sources = "src"
+tests = "tests"
+python.coverage.reportPaths = "coverage.xml"
+sourceEncoding = "UTF-8"
