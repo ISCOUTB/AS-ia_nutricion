@@ -1,39 +1,33 @@
 from pymongo import MongoClient
-from pymongo.errors import CollectionInvalid
+from pymongo.errors import CollectionInvalid, ConnectionFailure
 import logging
+import os
+from .utils.validators import initialize_collections
 
 logger = logging.getLogger(__name__)
 
-def initialize_collections(db):
-    """
-    Crea las colecciones si no existen aún e inicializa índices importantes.
-    (Sin validación por JSON Schema, ya que Cosmos DB vCore no lo admite)
-    """
-    existing_collections = db.list_collection_names()
+# Configuración de conexión desde variables de entorno
+MONGO_URL = os.getenv("MONGO_URL")
+DATABASE_NAME = "NutriKids"
 
-    # Mapeo de nombres más descriptivos para las colecciones
-    required_collections = {
-        "users": "Usuarios del sistema",
-        "roles": "Roles de usuario", 
-        "children": "Información de niños",
-        "medical_history": "Historial médico",
-        "anthropometric_data": "Datos antropométricos",
-        "behavioral_data": "Datos conductuales", 
-        "classification_results": "Resultados de classification",
-        "audit_log": "Log de auditoría",
-        "households": "Información del hogar"
-    }
-
-    # Crear colecciones
-    for collection_name, description in required_collections.items():
-        if collection_name not in existing_collections:
-            db.create_collection(collection_name)
-            logger.info(f"✅ Colección '{collection_name}' creada: {description}")
-        else:
-            logger.info(f"🔎 Colección '{collection_name}' ya existe.")
-
-    # Crear índices importantes para rendimiento y unicidad
-    create_indexes(db)
+try:
+    # Crear cliente MongoDB
+    client = MongoClient(MONGO_URL)
+    
+    # Probar conexión
+    client.admin.command('ping')
+    
+    # Obtener base de datos
+    db = client[DATABASE_NAME]
+    
+    logger.info(f"✅ Conectado exitosamente a MongoDB: {DATABASE_NAME}")
+    
+except ConnectionFailure as e:
+    logger.error(f"❌ Error conectando a MongoDB: {e}")
+    raise
+except Exception as e:
+    logger.error(f"❌ Error inesperado conectando a MongoDB: {e}")
+    raise
 
 
 def create_indexes(db):
@@ -126,3 +120,11 @@ def validate_database_health(db):
     except Exception as e:
         logger.error(f"❌ Error en validación de salud de la base de datos: {e}")
         return False
+
+
+# Inicializar base de datos al importar
+try:
+    initialize_collections(db)
+    validate_database_health(db)
+except Exception as e:
+    logger.error(f"❌ Error inicializando base de datos: {e}")
