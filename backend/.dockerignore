@@ -4,3 +4,4 @@ __pycache__
 .pytest_cache
 *.pyo
 .sonar
+pytest_report.txt
