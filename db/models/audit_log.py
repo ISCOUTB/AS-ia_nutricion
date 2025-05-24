@@ -1,46 +1,52 @@
-from pydantic import BaseModel, Field, GetJsonSchemaHandler
-from typing import Optional, Any
-from pydantic_core import core_schema
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 from datetime import datetime, timezone
-from bson import ObjectId
-
-
-class PyObjectId(ObjectId):
-    """Validador para ObjectId compatible con Pydantic"""
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> core_schema.CoreSchema:
-        return core_schema.no_info_plain_validator_function(cls.validate)
-
-    @classmethod
-    def validate(cls, v: Any) -> ObjectId:
-        if isinstance(v, ObjectId):
-            return v
-        if not ObjectId.is_valid(v):
-            raise ValueError(f"Invalid ObjectId: {v}")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler) -> dict:
-        return {
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{24}$",
-        }
+from .base import BaseDBModel, PyObjectId
 
 
 class AuditLogCreate(BaseModel):
-    user_id: str
+    user_id: PyObjectId
     action: str
-    timestamp: Optional[datetime] = Field(default_factory=datetime.now(timezone.utc))
+    timestamp: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
     ip_address: Optional[str] = None
     details: Optional[str] = None
 
+    @field_validator('action')
+    def validate_action(cls, v):
+        if not v or not v.strip():
+            raise ValueError('La acción es obligatoria')
+        
+        valid_actions = [
+            'login', 'logout', 'create_child', 'update_child', 'delete_child',
+            'create_measurement', 'update_measurement', 'delete_measurement',
+            'run_classification', 'export_data', 'import_data'
+        ]
+        
+        clean_action = v.strip().lower()
+        if clean_action not in valid_actions:
+            raise ValueError(f'Acción debe ser una de: {", ".join(valid_actions)}')
+        
+        return clean_action
 
-class AuditLogInDB(AuditLogCreate):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    @field_validator('ip_address')
+    def validate_ip_address(cls, v):
+        if v is not None:
+            import re
+            # Validación básica de IP (IPv4)
+            ip_pattern = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+            if not re.match(ip_pattern, v.strip()):
+                raise ValueError('Formato de IP inválido')
+            return v.strip()
+        return v
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str,
-        }
+    @field_validator('details')
+    def validate_details(cls, v):
+        if v is not None:
+            if len(v.strip()) > 500:
+                raise ValueError('Los detalles no pueden exceder 500 caracteres')
+            return v.strip() if v.strip() else None
+        return v
+
+
+class AuditLogInDB(AuditLogCreate, BaseDBModel):
+    pass

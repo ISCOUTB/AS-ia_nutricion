@@ -29,7 +29,7 @@ def register_user(email: str, password: str) -> Optional[Dict[str, str]]:
             role_id=None  # Puedes poner aquí ObjectId("...") si tienes un rol por defecto
         )
 
-        result = usuarios_collection.insert_one(user_data.dict(by_alias=True, exclude={"id"}))
+        result = usuarios_collection.insert_one(user_data.model_dump(by_alias=True, exclude={"id"}))
         return {"message": "Usuario registrado", "user_id": str(result.inserted_id)}
     
     except Exception as e:

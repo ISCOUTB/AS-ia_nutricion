@@ -7,7 +7,7 @@ measurements_collection = db["datos_antropometricos"]
 
 # Crear una nueva medición
 def create_measurement(measurement_data: Measurement) -> str:
-    data = measurement_data.dict(by_alias=True, exclude_unset=True)
+    data = measurement_data.model_dump(by_alias=True, exclude_unset=True)
     result = measurements_collection.insert_one(data)
     return str(result.inserted_id)
 

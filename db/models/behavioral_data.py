@@ -1,47 +1,32 @@
-from pydantic import BaseModel, Field, GetJsonSchemaHandler
-from typing import Optional, Any
-from pydantic_core import core_schema
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 from datetime import date
-from bson import ObjectId
-
-
-class PyObjectId(ObjectId):
-    """Validador para ObjectId compatible con Pydantic"""
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> core_schema.CoreSchema:
-        return core_schema.no_info_plain_validator_function(cls.validate)
-
-    @classmethod
-    def validate(cls, v: Any) -> ObjectId:
-        if isinstance(v, ObjectId):
-            return v
-        if not ObjectId.is_valid(v):
-            raise ValueError(f"Invalid ObjectId: {v}")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler) -> dict:
-        return {
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{24}$",
-        }
+from .base import BaseDBModel, PyObjectId
 
 
 class BehavioralDataCreate(BaseModel):
-    child_id: str
+    child_id: PyObjectId
     consumo_frutas: bool
     consumo_verduras: bool
     actividad_fisica: bool
     tiempo_pantalla: Optional[float] = None  # horas/día
     fecha_registro: Optional[date] = Field(default_factory=date.today)
 
+    @field_validator('tiempo_pantalla')
+    def validate_tiempo_pantalla(cls, v):
+        if v is not None:
+            if v < 0:
+                raise ValueError('El tiempo de pantalla no puede ser negativo')
+            if v > 24:
+                raise ValueError('El tiempo de pantalla no puede exceder 24 horas al día')
+        return v
 
-class BehavioralDataInDB(BehavioralDataCreate):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    @field_validator('fecha_registro')
+    def validate_fecha_registro(cls, v):
+        if v and v > date.today():
+            raise ValueError('La fecha de registro no puede ser futura')
+        return v
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str,
-        }
+
+class BehavioralDataInDB(BehavioralDataCreate, BaseDBModel):
+    pass

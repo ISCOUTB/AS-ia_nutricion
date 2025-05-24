@@ -1,47 +1,33 @@
-from pydantic import BaseModel, Field, GetJsonSchemaHandler
-from typing import Optional, Any
-from pydantic_core import core_schema
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 from datetime import date
-from bson import ObjectId
-
-
-class PyObjectId(ObjectId):
-    """Validador personalizado para ObjectId"""
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type: Any, handler: Any) -> core_schema.CoreSchema:
-        return core_schema.no_info_plain_validator_function(cls.validate)
-
-    @classmethod
-    def validate(cls, v: Any) -> ObjectId:
-        if isinstance(v, ObjectId):
-            return v
-        if not ObjectId.is_valid(v):
-            raise ValueError(f"Invalid ObjectId: {v}")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler) -> dict:
-        return {
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{24}$",
-        }
+from .base import BaseDBModel, PyObjectId
 
 
 class MedicalHistoryCreate(BaseModel):
-    child_id: str  # Puede mantenerse como str si llega así desde la API
+    child_id: PyObjectId
     enfermedades: Optional[str] = None
     medicamentos: Optional[str] = None
     alergias: Optional[str] = None
     antecedentes_familiares: Optional[str] = None
     fecha_registro: Optional[date] = Field(default_factory=date.today)
 
+    @field_validator('fecha_registro')
+    def validate_fecha_registro(cls, v):
+        if v and v > date.today():
+            raise ValueError('La fecha de registro no puede ser futura')
+        return v
 
-class MedicalHistoryInDB(MedicalHistoryCreate):
-    id: Optional[PyObjectId] = Field(default_factory=PyObjectId, alias="_id")
+    @field_validator('enfermedades', 'medicamentos', 'alergias', 'antecedentes_familiares')
+    def validate_text_fields(cls, v):
+        if v is not None:
+            v = v.strip()
+            if not v:  # Si es string vacío después del strip
+                return None
+            if len(v) > 1000:  # Límite razonable de caracteres
+                raise ValueError('El texto no puede exceder 1000 caracteres')
+        return v
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str,
-        }
+
+class MedicalHistoryInDB(MedicalHistoryCreate, BaseDBModel):
+    pass
