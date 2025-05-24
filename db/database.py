@@ -7,8 +7,8 @@ from .utils.validators import initialize_collections
 logger = logging.getLogger(__name__)
 
 # Configuración de conexión desde variables de entorno
-MONGO_URL = os.getenv("MONGO_URL")
-DATABASE_NAME = "NutriKids"
+MONGO_URL = os.getenv("MONGO_URI")
+DATABASE_NAME = "Nutrikids"
 
 try:
     # Crear cliente MongoDB
@@ -101,10 +101,9 @@ def validate_database_health(db):
         # Verificar que las colecciones existen
         collections = db.list_collection_names()
         required_collections = [
-            "users", "roles", "children", "medical_history", 
-            "anthropometric_data", "behavioral_data", 
-            "classification_results", "audit_log", "households"
-        ]
+            "usuarios", "roles", "ninos", "historial_medico", "datos_antropometricos",
+            "datos_conductuales", "resultados_clasificacion", "audit_log", "household"
+    ]
         
         missing_collections = [col for col in required_collections if col not in collections]
         

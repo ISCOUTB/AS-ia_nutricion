@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Usar el nombre correcto de la colección según database.py
-measurements_collection = db["anthropometric_data"]
+measurements_collection = db["datos_antropometricos"]
 
 def create_measurement(measurement_data: MeasurementCreate) -> str:
     """Crear una nueva medición"""

@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Conexión a las colecciones
-users_collection = db["users"]
+users_collection = db["usuarios"]
 roles_collection = db["roles"]
 audit_log_collection = db["audit_log"]
 

@@ -13,9 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Referencias a las colecciones (usando nombres correctos de tu base de datos)
-children_col = db["children"]
-measurements_col = db["anthropometric_data"]
-classification_col = db["classification_results"]
+children_col = db["ninos"]
+measurements_col = db["datos_antropometricos"]
+classification_col = db["resultados_clasificacion"]
 
 
 def calcular_edad(fecha_nacimiento: date) -> int:
@@ -162,7 +162,7 @@ def _get_estadisticas_nutricionales(match_filter: dict) -> EstadisticasNutricion
         {"$match": match_filter},
         {
             "$lookup": {
-                "from": "classification_results",
+                "from": "resultados_clasificacion",
                 "localField": "_id",
                 "foreignField": "child_id",
                 "as": "clasificaciones"
@@ -216,7 +216,7 @@ def _get_promedios(match_filter: dict):
         {"$match": match_filter},
         {
             "$lookup": {
-                "from": "anthropometric_data",
+                "from": "datos_antropometricos",
                 "localField": "_id",
                 "foreignField": "child_id",
                 "as": "mediciones"

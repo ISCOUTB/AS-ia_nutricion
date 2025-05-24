@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 child_router = APIRouter(
     prefix="/children",
-    tags=["Gestión de Niños"]
+    tags=["Niños"]
 )
 
 # === Crear niño ===

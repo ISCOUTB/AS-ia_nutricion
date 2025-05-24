@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Conexión a la colección de niños (usando el nombre correcto de tu estructura)
-children_collection = db["children"]
+children_collection = db["ninos"]
 
 # === Crear nuevo niño ===
 def create_child(child_data: ChildCreate) -> str:
