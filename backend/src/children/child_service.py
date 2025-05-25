@@ -286,10 +286,10 @@ def delete_child(child_id: str) -> bool:
 
         # Eliminar datos relacionados primero
         related_collections = [
-            "anthropometric_data",
-            "behavioral_data", 
-            "medical_history",
-            "classification_results"
+            "datos_antropometricos",
+            "datos_conductuales", 
+            "historial_medico",
+            "resultados_clasificacion"
         ]
         
         for collection_name in related_collections:

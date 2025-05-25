@@ -28,19 +28,19 @@ def create(measurement: MeasurementCreate):
             "measurement_id": measurement_id
         }
     except ValidationError as e:
-        logger.error(f"Error de validación creando medición: {e}")
+        #logger.error(f"Error de validación creando medición: {e}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Error de validación: {str(e)}"
         )
     except ValueError as e:
-        logger.error(f"Error de valor creando medición: {e}")
+        #logger.error(f"Error de valor creando medición: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Error interno creando medición: {e}")
+        #logger.error(f"Error interno creando medición: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -58,7 +58,7 @@ def read_all(
         # Aplicar paginación manual (idealmente esto debería hacerse en la base de datos)
         return measurements[skip:skip + limit]
     except Exception as e:
-        logger.error(f"Error obteniendo todas las mediciones: {e}")
+        #logger.error(f"Error obteniendo todas las mediciones: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -77,7 +77,7 @@ def read_one(measurement_id: str):
             )
         return result
     except ValueError as e:
-        logger.error(f"Error de validación obteniendo medición {measurement_id}: {e}")
+        #logger.error(f"Error de validación obteniendo medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -85,7 +85,7 @@ def read_one(measurement_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error interno obteniendo medición {measurement_id}: {e}")
+        #logger.error(f"Error interno obteniendo medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -105,13 +105,13 @@ def read_by_child(
         else:
             return get_measurements_by_child(child_id)
     except ValueError as e:
-        logger.error(f"Error de validación obteniendo mediciones del niño {child_id}: {e}")
+        #logger.error(f"Error de validación obteniendo mediciones del niño {child_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.error(f"Error interno obteniendo mediciones del niño {child_id}: {e}")
+        #logger.error(f"Error interno obteniendo mediciones del niño {child_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -148,7 +148,7 @@ def update(measurement_id: str, updated_data: dict):
         return {"message": "Medición actualizada exitosamente"}
         
     except ValueError as e:
-        logger.error(f"Error de validación actualizando medición {measurement_id}: {e}")
+        #logger.error(f"Error de validación actualizando medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -156,7 +156,7 @@ def update(measurement_id: str, updated_data: dict):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error interno actualizando medición {measurement_id}: {e}")
+        #logger.error(f"Error interno actualizando medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -177,7 +177,7 @@ def delete(measurement_id: str):
         return {"message": "Medición eliminada exitosamente"}
         
     except ValueError as e:
-        logger.error(f"Error de validación eliminando medición {measurement_id}: {e}")
+        #logger.error(f"Error de validación eliminando medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -185,7 +185,7 @@ def delete(measurement_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error interno eliminando medición {measurement_id}: {e}")
+        #logger.error(f"Error interno eliminando medición {measurement_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -229,7 +229,7 @@ def get_child_stats(child_id: str):
         stats = _calculate_stats(measurements)
         return stats
     except ValueError as e:
-        logger.error(f"Error de validación obteniendo estadísticas del niño {child_id}: {e}")
+        #logger.error(f"Error de validación obteniendo estadísticas del niño {child_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -237,7 +237,7 @@ def get_child_stats(child_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error interno obteniendo estadísticas del niño {child_id}: {e}")
+        #logger.error(f"Error interno obteniendo estadísticas del niño {child_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"

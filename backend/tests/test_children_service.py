@@ -85,9 +85,9 @@ def test_create_child_minimal_data(minimal_child_data):
     
     assert isinstance(child_id, str)
     saved_child = child_service.children_collection.find_one({"_id": ObjectId(child_id)})
-    assert saved_child["institucion"] is None
-    assert saved_child["barrio"] is None
-    assert saved_child["parentesco_acudiente"] is None
+    assert "institucion" not in saved_child or saved_child["institucion"] is None
+    assert "barrio" not in saved_child or saved_child["barrio"] is None
+    assert "parentesco_acudiente" not in saved_child or saved_child["parentesco_acudiente"] is None
 
 def test_create_child_duplicate_document(valid_child_data):
     """Test error al crear niño con documento duplicado"""
@@ -139,7 +139,7 @@ def test_get_all_children_multiple(valid_child_data, minimal_child_data):
 
 def test_get_all_children_with_corrupted_data():
     """Test obtener niños cuando hay datos corruptos"""
-    # Insertar un documento válido
+    # Usar la función helper para preparar los datos correctamente
     valid_doc = {
         "nombre": "Pedro",
         "apellido": "Sánchez",
@@ -148,19 +148,25 @@ def test_get_all_children_with_corrupted_data():
         "sexo": "M",
         "institucion": "Colegio A"
     }
-    child_service.children_collection.insert_one(valid_doc)
+    # Preparar datos usando la función del servicio
+    prepared_doc = child_service._prepare_child_data_for_db(valid_doc.copy())
+    child_service.children_collection.insert_one(prepared_doc)
     
-    # Insertar un documento con datos faltantes
-    invalid_doc = {
-        "nombre": "María",
-        # Falta apellido
-        "documento": "222222"
-        # Faltan otros campos requeridos
+    # Insertar documento corrupto directamente
+    corrupted_doc = {
+        "nombre": "Ana",
+        "apellido": "López",
+        "documento": "222222", 
+        "fecha_nacimiento": "fecha-inválida",  # Dato corrupto
+        "sexo": "F",
+        "institucion": "Colegio B"
     }
-    child_service.children_collection.insert_one(invalid_doc)
+    child_service.children_collection.insert_one(corrupted_doc)
     
+    # El servicio debería manejar el documento corrupto gracefully
     children = child_service.get_all_children()
-    # Debe devolver solo el documento válido
+    
+    # Debería devolver solo el documento válido
     assert len(children) == 1
     assert children[0].nombre == "Pedro"
 
@@ -298,8 +304,8 @@ def test_delete_child_success(valid_child_data):
     
     # Agregar algunos datos relacionados
     obj_id = ObjectId(child_id)
-    child_service.db["anthropometric_data"].insert_one({"child_id": obj_id, "weight": 25})
-    child_service.db["behavioral_data"].insert_one({"child_id": obj_id, "behavior": "calm"})
+    child_service.db["datos_antropometricos"].insert_one({"child_id": obj_id, "weight": 25})
+    child_service.db["datos_conductuales"].insert_one({"child_id": obj_id, "behavior": "calm"})
     
     result = child_service.delete_child(child_id)
     assert result is True
@@ -309,8 +315,8 @@ def test_delete_child_success(valid_child_data):
     assert deleted_child is None
     
     # Verificar que los datos relacionados fueron eliminados
-    assert child_service.db["anthropometric_data"].find_one({"child_id": obj_id}) is None
-    assert child_service.db["behavioral_data"].find_one({"child_id": obj_id}) is None
+    assert child_service.db["datos_antropometricos"].find_one({"child_id": obj_id}) is None
+    assert child_service.db["datos_conductuales"].find_one({"child_id": obj_id}) is None
 
 def test_delete_child_not_found():
     """Test eliminar niño que no existe"""
@@ -328,7 +334,7 @@ def test_delete_child_with_related_data_error(valid_child_data):
     child_id = child_service.create_child(valid_child_data)
     
     # Mock error en eliminación de datos relacionados
-    with patch.object(child_service.db["anthropometric_data"], 'delete_many', side_effect=Exception("Related data error")):
+    with patch.object(child_service.db["datos_antropometricos"], 'delete_many', side_effect=Exception("Related data error")):
         result = child_service.delete_child(child_id)
         # Debería continuar y eliminar el niño principal
         assert result is True

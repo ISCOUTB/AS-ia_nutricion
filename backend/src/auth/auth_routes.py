@@ -52,7 +52,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserOut:
             
         return user
     except Exception as e:
-        logger.error(f"Error en get_current_user: {e}")
+        #logger.error(f"Error en get_current_user: {e}")
         raise credentials_exception
 
 async def get_current_active_user(current_user: UserOut = Depends(get_current_user)) -> UserOut:
@@ -88,23 +88,17 @@ async def register(user_data: UserRegister, request: Request):
         )
         
         if "error" in result:
-            if "ya está registrado" in result["error"]:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=result["error"]
-                )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=result["error"]
-                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=result["error"]
+            )
         
         return result
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error en registro: {e}")
+        #logger.error(f"Error en registro: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -133,7 +127,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error en login: {e}")
+        #logger.error(f"Error en login: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -162,7 +156,7 @@ async def login_with_json(user_login: UserLogin, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error en login JSON: {e}")
+        #logger.error(f"Error en login JSON: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -186,7 +180,7 @@ async def refresh_token(token_request: RefreshTokenRequest, request: Request):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error en refresh token: {e}")
+        #logger.error(f"Error en refresh token: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -226,7 +220,7 @@ async def change_password(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error al cambiar contraseña: {e}")
+        #logger.error(f"Error al cambiar contraseña: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -262,7 +256,7 @@ async def request_password_reset(password_reset: PasswordReset, request: Request
         }
         
     except Exception as e:
-        logger.error(f"Error en password reset request: {e}")
+        #logger.error(f"Error en password reset request: {e}")
         # No revelamos el error específico por seguridad
         return {
             "message": "Si el correo existe, recibirás instrucciones para resetear tu contraseña"
@@ -293,7 +287,7 @@ async def confirm_password_reset(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error en password reset confirm: {e}")
+        #logger.error(f"Error en password reset confirm: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
@@ -309,7 +303,7 @@ async def get_all_users(admin_user: UserOut = Depends(require_admin)):
         return users
         
     except Exception as e:
-        logger.error(f"Error al obtener usuarios: {e}")
+        #logger.error(f"Error al obtener usuarios: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor"
