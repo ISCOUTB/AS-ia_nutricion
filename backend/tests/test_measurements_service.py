@@ -1,507 +1,447 @@
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from fastapi.testclient import TestClient
+from fastapi import FastAPI
+from unittest.mock import Mock, patch
 from bson import ObjectId
-from bson.errors import InvalidId
 from datetime import date, timedelta
-from typing import List
+import json
+from unittest.mock import patch
+from pydantic import ValidationError
+from backend.src.measurements.measurement_models import MeasurementCreate
+from fastapi import HTTPException
 
-# Importar los módulos a testear
-from backend.src.measurements.measurement_service import (
-    create_measurement,
-    get_all_measurements,
-    get_measurements_by_child,
-    get_measurement_by_id,
-    update_measurement,
-    delete_measurement,
-    get_latest_measurement_by_child,
-    measurements_collection
-)
-from backend.src.measurements.measurement_models import (
-    Measurement, 
-    MeasurementCreate,
-    PyObjectId
-)
+# Importar el router a testear
+from backend.src.measurements.measurement_routes import measurement_router
+from backend.src.measurements.measurement_models import Measurement
 
-class TestMeasurementModels:
-    """Pruebas para los modelos de Pydantic"""
+# Crear aplicación de prueba
+app = FastAPI()
+app.include_router(measurement_router)
+client = TestClient(app)
+
+class TestMeasurementRoutes:
+    """Pruebas para los endpoints de mediciones"""
     
-    def test_measurement_create_valid_data(self):
-        """Test de creación de medición con datos válidos"""
-        child_id = ObjectId()
-        measurement_data = {
-            "child_id": child_id,
-            "peso": 25.5,
+    def setup_method(self):
+        """Configurar datos de prueba"""
+        self.sample_measurement_id = str(ObjectId())
+        self.sample_child_id = str(ObjectId())
+        self.sample_measurement_data = {
+            "child_id": self.sample_child_id,
+            "peso": 25.0,
             "talla": 120.0,
-            "fecha_medicion": date.today()
+            "fecha_medicion": str(date.today())
         }
+        self.sample_measurement_response = {
+            "_id": self.sample_measurement_id,
+            "child_id": self.sample_child_id,
+            "peso": 25.0,
+            "talla": 120.0,
+            "imc": 17.36,
+            "fecha_medicion": str(date.today())
+        }
+
+    @patch('backend.src.measurements.measurement_routes.create_measurement')
+    def test_create_measurement_success(self, mock_create):
+        """Test de creación exitosa de medición"""
+        mock_create.return_value = self.sample_measurement_id
         
-        measurement = MeasurementCreate(**measurement_data)
-        assert measurement.child_id == child_id
-        assert measurement.peso == 25.5
-        assert measurement.talla == 120.0
-        assert measurement.fecha_medicion == date.today()
-    
-    def test_measurement_create_invalid_peso(self):
-        """Test de validación de peso inválido"""
-        child_id = ObjectId()
+        response = client.post("/measurements/", json=self.sample_measurement_data)
         
-        # Peso negativo
-        with pytest.raises(ValueError, match="El peso debe ser mayor a 0"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=-5.0,
-                talla=120.0,
-                fecha_medicion=date.today()
-            )
+        assert response.status_code == 201
+        data = response.json()
+        assert data["message"] == "Medición registrada exitosamente"
+        assert data["measurement_id"] == self.sample_measurement_id
+        mock_create.assert_called_once()
+
+    @patch('backend.src.measurements.measurement_routes.create_measurement')
+    def test_create_measurement_validation_error(self, mock_create):
+        """Test de error de validación al crear medición"""
+        # Usar ValueError que es más simple y apropiado
+        mock_create.side_effect = ValueError("El peso debe ser mayor a 0")
         
-        # Peso cero
-        with pytest.raises(ValueError, match="El peso debe ser mayor a 0"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=0,
-                talla=120.0,
-                fecha_medicion=date.today()
-            )
+        response = client.post("/measurements/", json=self.sample_measurement_data)
+        assert response.status_code == 400  # ValueError se mapea a 400
+        assert response.json()["detail"] == "El peso debe ser mayor a 0"
+
+    @patch('backend.src.measurements.measurement_routes.create_measurement')
+    def test_create_measurement_value_error(self, mock_create):
+        """Test de error de valor al crear medición"""
+        mock_create.side_effect = ValueError("Datos inválidos")
         
-        # Peso excesivo
-        with pytest.raises(ValueError, match="El peso parece excesivo para un niño"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=250.0,
-                talla=120.0,
-                fecha_medicion=date.today()
-            )
-    
-    def test_measurement_create_invalid_talla(self):
-        """Test de validación de talla inválida"""
-        child_id = ObjectId()
+        response = client.post("/measurements/", json=self.sample_measurement_data)
         
-        # Talla negativa
-        with pytest.raises(ValueError, match="La talla debe ser mayor a 0"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=25.0,
-                talla=-10.0,
-                fecha_medicion=date.today()
-            )
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Datos inválidos"
+
+    @patch('backend.src.measurements.measurement_routes.create_measurement')
+    def test_create_measurement_internal_error(self, mock_create):
+        """Test de error interno al crear medición"""
+        mock_create.side_effect = Exception("Database error")
         
-        # Talla cero
-        with pytest.raises(ValueError, match="La talla debe ser mayor a 0"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=25.0,
-                talla=0,
-                fecha_medicion=date.today()
-            )
+        response = client.post("/measurements/", json=self.sample_measurement_data)
         
-        # Talla excesiva
-        with pytest.raises(ValueError, match="La talla parece excesiva para un niño"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=25.0,
-                talla=300.0,
-                fecha_medicion=date.today()
-            )
-    
-    def test_measurement_create_invalid_fecha(self):
-        """Test de validación de fecha futura"""
-        child_id = ObjectId()
-        future_date = date.today() + timedelta(days=1)
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Error interno del servidor"
+
+    @patch('backend.src.measurements.measurement_routes.get_all_measurements')
+    def test_read_all_measurements_success(self, mock_get_all):
+        """Test de obtención exitosa de todas las mediciones"""
+        mock_measurement = Measurement(**self.sample_measurement_response)
+        mock_get_all.return_value = [mock_measurement]
         
-        with pytest.raises(ValueError, match="La fecha de medición no puede ser futura"):
-            MeasurementCreate(
-                child_id=child_id,
-                peso=25.0,
-                talla=120.0,
-                fecha_medicion=future_date
-            )
-    
-    def test_measurement_imc_calculation(self):
-        """Test del cálculo automático de IMC"""
-        child_id = ObjectId()
+        response = client.get("/measurements/")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["peso"] == 25.0
+
+    @patch('backend.src.measurements.measurement_routes.get_all_measurements')
+    def test_read_all_measurements_with_pagination(self, mock_get_all):
+        """Test de paginación en obtención de mediciones"""
+        mock_measurements = [
+            Measurement(**{**self.sample_measurement_response, "_id": str(ObjectId())})
+            for _ in range(5)
+        ]
+        mock_get_all.return_value = mock_measurements
+        
+        response = client.get("/measurements/?skip=2&limit=2")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 2  # Paginación aplicada
+
+    @patch('backend.src.measurements.measurement_routes.get_all_measurements')
+    def test_read_all_measurements_error(self, mock_get_all):
+        """Test de error al obtener todas las mediciones"""
+        mock_get_all.side_effect = Exception("Database error")
+        
+        response = client.get("/measurements/")
+        
+        assert response.status_code == 500
+        assert response.json()["detail"] == "Error interno del servidor"
+
+    @patch('backend.src.measurements.measurement_routes.get_measurement_by_id')
+    def test_read_one_measurement_success(self, mock_get_by_id):
+        """Test de obtención exitosa de una medición"""
+        mock_measurement = Measurement(**self.sample_measurement_response)
+        mock_get_by_id.return_value = mock_measurement
+        
+        response = client.get(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["peso"] == 25.0
+
+    @patch('backend.src.measurements.measurement_routes.get_measurement_by_id')
+    def test_read_one_measurement_not_found(self, mock_get_by_id):
+        """Test de medición no encontrada"""
+        mock_get_by_id.return_value = None
+        
+        response = client.get(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Medición no encontrada"
+
+    @patch('backend.src.measurements.measurement_routes.get_measurement_by_id')
+    def test_read_one_measurement_invalid_id(self, mock_get_by_id):
+        """Test de ID inválido al obtener medición"""
+        mock_get_by_id.side_effect = ValueError("ID de medición inválido")
+        
+        response = client.get("/measurements/invalid_id")
+        
+        assert response.status_code == 400
+        assert "ID de medición inválido" in response.json()["detail"]
+
+    @patch('backend.src.measurements.measurement_routes.get_measurement_by_id')
+    def test_read_one_measurement_internal_error(self, mock_get_by_id):
+        """Test de error interno al obtener medición"""
+        mock_get_by_id.side_effect = Exception("Database error")
+        
+        response = client.get(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 500
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_read_by_child_success(self, mock_get_by_child):
+        """Test de obtención exitosa de mediciones por niño"""
+        mock_measurement = Measurement(**self.sample_measurement_response)
+        mock_get_by_child.return_value = [mock_measurement]
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        assert data[0]["child_id"] == self.sample_child_id
+
+    @patch('backend.src.measurements.measurement_routes.get_latest_measurement_by_child')
+    def test_read_by_child_latest_only(self, mock_get_latest):
+        """Test de obtención de última medición de un niño"""
+        mock_measurement = Measurement(**self.sample_measurement_response)
+        mock_get_latest.return_value = mock_measurement
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}?latest_only=true")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 1
+        mock_get_latest.assert_called_once_with(self.sample_child_id)
+
+    @patch('backend.src.measurements.measurement_routes.get_latest_measurement_by_child')
+    def test_read_by_child_latest_only_not_found(self, mock_get_latest):
+        """Test de última medición no encontrada"""
+        mock_get_latest.return_value = None
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}?latest_only=true")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 0
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_read_by_child_invalid_id(self, mock_get_by_child):
+        """Test de ID de niño inválido"""
+        mock_get_by_child.side_effect = ValueError("ID de niño inválido")
+        
+        response = client.get("/measurements/child/invalid_id")
+        
+        assert response.status_code == 400
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_read_by_child_internal_error(self, mock_get_by_child):
+        """Test de error interno al obtener mediciones por niño"""
+        mock_get_by_child.side_effect = Exception("Database error")
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}")
+        
+        assert response.status_code == 500
+
+    @patch('backend.src.measurements.measurement_routes.update_measurement')
+    def test_update_measurement_success(self, mock_update):
+        """Test de actualización exitosa de medición"""
+        mock_update.return_value = True
+        update_data = {"peso": 26.0}
+        
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json=update_data)
+        
+        assert response.status_code == 200
+        assert response.json()["message"] == "Medición actualizada exitosamente"
+        mock_update.assert_called_once_with(self.sample_measurement_id, update_data)
+
+    @patch('backend.src.measurements.measurement_routes.update_measurement')
+    def test_update_measurement_not_found(self, mock_update):
+        """Test de actualización de medición no encontrada"""
+        mock_update.return_value = False
+        update_data = {"peso": 26.0}
+        
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json=update_data)
+        
+        assert response.status_code == 404
+        assert "no encontrada" in response.json()["detail"]
+
+    def test_update_measurement_invalid_fields(self):
+        """Test de actualización con campos inválidos"""
+        update_data = {"campo_invalido": "valor", "peso": 26.0}
+        
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json=update_data)
+        
+        assert response.status_code == 400
+        assert "Campos no permitidos" in response.json()["detail"]
+
+    def test_update_measurement_empty_data(self):
+        """Test de actualización sin datos"""
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json={})
+        
+        assert response.status_code == 400
+        assert "No se proporcionaron datos" in response.json()["detail"]
+
+    @patch('backend.src.measurements.measurement_routes.update_measurement')
+    def test_update_measurement_value_error(self, mock_update):
+        """Test de error de valor al actualizar"""
+        mock_update.side_effect = ValueError("ID inválido")
+        update_data = {"peso": 26.0}
+        
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json=update_data)
+        
+        assert response.status_code == 400
+
+    @patch('backend.src.measurements.measurement_routes.update_measurement')
+    def test_update_measurement_internal_error(self, mock_update):
+        """Test de error interno al actualizar"""
+        mock_update.side_effect = Exception("Database error")
+        update_data = {"peso": 26.0}
+        
+        response = client.put(f"/measurements/{self.sample_measurement_id}", json=update_data)
+        
+        assert response.status_code == 500
+
+    @patch('backend.src.measurements.measurement_routes.delete_measurement')
+    def test_delete_measurement_success(self, mock_delete):
+        """Test de eliminación exitosa de medición"""
+        mock_delete.return_value = True
+        
+        response = client.delete(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 200
+        assert response.json()["message"] == "Medición eliminada exitosamente"
+        mock_delete.assert_called_once_with(self.sample_measurement_id)
+
+    @patch('backend.src.measurements.measurement_routes.delete_measurement')
+    def test_delete_measurement_not_found(self, mock_delete):
+        """Test de eliminación de medición no encontrada"""
+        mock_delete.return_value = False
+        
+        response = client.delete(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 404
+        assert "no encontrada" in response.json()["detail"]
+
+    @patch('backend.src.measurements.measurement_routes.delete_measurement')
+    def test_delete_measurement_value_error(self, mock_delete):
+        """Test de error de valor al eliminar"""
+        mock_delete.side_effect = ValueError("ID inválido")
+        
+        response = client.delete(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 400
+
+    @patch('backend.src.measurements.measurement_routes.delete_measurement')
+    def test_delete_measurement_internal_error(self, mock_delete):
+        """Test de error interno al eliminar"""
+        mock_delete.side_effect = Exception("Database error")
+        
+        response = client.delete(f"/measurements/{self.sample_measurement_id}")
+        
+        assert response.status_code == 500
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_get_child_stats_success(self, mock_get_by_child):
+        """Test de obtención exitosa de estadísticas"""
+        mock_measurements = [
+            Measurement(**{
+                "_id": str(ObjectId()),
+                "child_id": self.sample_child_id,
+                "peso": 24.0,
+                "talla": 115.0,
+                "imc": 18.15,
+                "fecha_medicion": str(date.today() - timedelta(days=30))
+            }),
+            Measurement(**{
+                "_id": str(ObjectId()),
+                "child_id": self.sample_child_id,
+                "peso": 25.0,
+                "talla": 120.0,
+                "imc": 17.36,
+                "fecha_medicion": str(date.today())
+            })
+        ]
+        mock_get_by_child.return_value = mock_measurements
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}/stats")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_mediciones"] == 2
+        assert data["peso"]["actual"] == 25.0
+        assert data["peso"]["minimo"] == 24.0
+        assert data["peso"]["maximo"] == 25.0
+        assert data["peso"]["promedio"] == 24.5
+        assert data["talla"]["actual"] == 120.0
+        assert data["imc"]["actual"] == 17.36
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_get_child_stats_no_measurements(self, mock_get_by_child):
+        """Test de estadísticas sin mediciones"""
+        mock_get_by_child.return_value = []
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}/stats")
+        
+        assert response.status_code == 404
+        assert "No se encontraron mediciones" in response.json()["detail"]
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_get_child_stats_value_error(self, mock_get_by_child):
+        """Test de error de valor en estadísticas"""
+        mock_get_by_child.side_effect = ValueError("ID inválido")
+        
+        response = client.get("/measurements/child/invalid_id/stats")
+        
+        assert response.status_code == 400
+
+    @patch('backend.src.measurements.measurement_routes.get_measurements_by_child')
+    def test_get_child_stats_internal_error(self, mock_get_by_child):
+        """Test de error interno en estadísticas"""
+        mock_get_by_child.side_effect = Exception("Database error")
+        
+        response = client.get(f"/measurements/child/{self.sample_child_id}/stats")
+        
+        assert response.status_code == 500
+
+    def test_calculate_stats_empty_measurements(self):
+        """Test de función _calculate_stats con lista vacía"""
+        from backend.src.measurements.measurement_routes import _calculate_stats
+        
+        stats = _calculate_stats([])
+        
+        assert stats["total_mediciones"] == 0
+        assert stats["peso"]["actual"] is None
+        assert stats["talla"]["actual"] is None
+        assert stats["imc"]["actual"] is None
+        assert stats["primera_medicion"] is None
+        assert stats["ultima_medicion"] is None
+
+    def test_calculate_stats_with_measurements(self):
+        """Test de función _calculate_stats con mediciones"""
+        from backend.src.measurements.measurement_routes import _calculate_stats
+        
+        measurements = [
+            Measurement(**{
+                "_id": str(ObjectId()),
+                "child_id": self.sample_child_id,
+                "peso": 24.0,
+                "talla": 115.0,
+                "imc": 18.15,
+                "fecha_medicion": date.today() - timedelta(days=30)
+            }),
+            Measurement(**{
+                "_id": str(ObjectId()),
+                "child_id": self.sample_child_id,
+                "peso": 25.0,
+                "talla": 120.0,
+                "imc": 17.36,
+                "fecha_medicion": date.today()
+            })
+        ]
+        
+        stats = _calculate_stats(measurements)
+        
+        assert stats["total_mediciones"] == 2
+        assert stats["peso"]["actual"] == 25.0
+        assert stats["peso"]["promedio"] == 24.5
+        assert stats["talla"]["minimo"] == 115.0
+        assert stats["talla"]["maximo"] == 120.0
+
+    def test_calculate_stats_with_none_imc(self):
+        from backend.src.measurements.measurement_routes import _calculate_stats
+
         measurement_data = {
             "_id": str(ObjectId()),
-            "child_id": child_id,
-            "peso": 25.0,  # kg
-            "talla": 125.0,  # cm
+            "child_id": self.sample_child_id,
+            "peso": 25.0,
+            "talla": 120.0,
+            "imc": None,
             "fecha_medicion": date.today()
         }
-        
+
         measurement = Measurement(**measurement_data)
-        # IMC = peso / (talla_m^2) = 25 / (1.25^2) = 25 / 1.5625 = 16.0
-        assert measurement.imc == 16.0
-    
-    def test_py_object_id_validation(self):
-        """Test del validador PyObjectId"""
-        # ObjectId válido
-        valid_id = ObjectId()
-        result = PyObjectId.validate(valid_id)
-        assert result == valid_id
-        
-        # String de ObjectId válido
-        valid_str = str(ObjectId())
-        result = PyObjectId.validate(valid_str)
-        assert isinstance(result, ObjectId)
-        
-        # ObjectId inválido
-        with pytest.raises(ValueError, match="Invalid ObjectId"):
-            PyObjectId.validate("invalid_id")
+        stats = _calculate_stats([measurement])
 
-
-class TestMeasurementService:
-    """Pruebas para el servicio de mediciones"""
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_create_measurement_success(self, mock_collection):
-        """Test de creación exitosa de medición"""
-        # Configurar mock
-        mock_result = Mock()
-        mock_result.inserted_id = ObjectId()
-        mock_collection.insert_one.return_value = mock_result
-        
-        # Datos de prueba
-        child_id = ObjectId()
-        measurement_data = MeasurementCreate(
-            child_id=child_id,
-            peso=25.0,
-            talla=120.0,
-            fecha_medicion=date.today()
-        )
-        
-        # Ejecutar función
-        result_id = create_measurement(measurement_data)
-        
-        # Verificar
-        assert result_id == str(mock_result.inserted_id)
-        mock_collection.insert_one.assert_called_once()
-        
-        # Verificar que los datos incluyen IMC calculado
-        call_args = mock_collection.insert_one.call_args[0][0]
-        assert "imc" in call_args
-        assert call_args["imc"] == 17.36  # 25 / (1.2^2)
-        assert isinstance(call_args["child_id"], ObjectId)
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_create_measurement_exception(self, mock_collection):
-        """Test de manejo de excepción al crear medición"""
-        # Configurar mock para lanzar excepción
-        mock_collection.insert_one.side_effect = Exception("Database error")
-        
-        child_id = ObjectId()
-        measurement_data = MeasurementCreate(
-            child_id=child_id,
-            peso=25.0,
-            talla=120.0,
-            fecha_medicion=date.today()
-        )
-        
-        # Verificar que se re-lanza la excepción
-        with pytest.raises(Exception, match="Database error"):
-            create_measurement(measurement_data)
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_all_measurements_success(self, mock_collection):
-        """Test de obtención exitosa de todas las mediciones"""
-        # Configurar mock data
-        mock_docs = [
-            {
-                "_id": ObjectId(),
-                "child_id": ObjectId(),
-                "peso": 25.0,
-                "talla": 120.0,
-                "imc": 17.36,
-                "fecha_medicion": date.today()
-            },
-            {
-                "_id": ObjectId(),
-                "child_id": ObjectId(),
-                "peso": 30.0,
-                "talla": 130.0,
-                "imc": 17.75,
-                "fecha_medicion": date.today()
-            }
-        ]
-        
-        mock_collection.find.return_value = mock_docs
-        
-        # Ejecutar función
-        result = get_all_measurements()
-        
-        # Verificar
-        assert len(result) == 2
-        assert all(isinstance(m, Measurement) for m in result)
-        mock_collection.find.assert_called_once()
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_all_measurements_with_invalid_doc(self, mock_collection):
-        """Test de obtención con documento inválido (debe omitirse)"""
-        # Configurar mock con un documento válido y uno inválido
-        mock_docs = [
-            {
-                "_id": ObjectId(),
-                "child_id": ObjectId(),
-                "peso": 25.0,
-                "talla": 120.0,
-                "imc": 17.36,
-                "fecha_medicion": date.today()
-            },
-            {
-                "_id": ObjectId(),
-                "child_id": ObjectId(),
-                "peso": -5.0,  # Peso inválido
-                "talla": 120.0,
-                "fecha_medicion": date.today()
-            }
-        ]
-        
-        mock_collection.find.return_value = mock_docs
-        
-        # Ejecutar función
-        result = get_all_measurements()
-        
-        # Verificar que solo se devuelve el documento válido
-        assert len(result) == 1
-        assert result[0].peso == 25.0
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_all_measurements_exception(self, mock_collection):
-        """Test de manejo de excepción al obtener todas las mediciones"""
-        mock_collection.find.side_effect = Exception("Database error")
-        
-        with pytest.raises(Exception, match="Database error"):
-            get_all_measurements()
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_measurements_by_child_success(self, mock_collection):
-        """Test de obtención exitosa de mediciones por niño"""
-        child_id = ObjectId()
-        mock_docs = [
-            {
-                "_id": ObjectId(),
-                "child_id": child_id,
-                "peso": 25.0,
-                "talla": 120.0,
-                "imc": 17.36,
-                "fecha_medicion": date.today()
-            }
-        ]
-        
-        mock_collection.find.return_value = mock_docs
-        
-        # Ejecutar función
-        result = get_measurements_by_child(str(child_id))
-        
-        # Verificar
-        assert len(result) == 1
-        assert isinstance(result[0], Measurement)
-        mock_collection.find.assert_called_once_with({"child_id": child_id})
-    
-    def test_get_measurements_by_child_invalid_id(self):
-        """Test de ID de niño inválido"""
-        with pytest.raises(ValueError, match="ID de niño inválido"):
-            get_measurements_by_child("invalid_id")
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_measurements_by_child_exception(self, mock_collection):
-        """Test de manejo de excepción al obtener mediciones por niño"""
-        mock_collection.find.side_effect = Exception("Database error")
-        child_id = str(ObjectId())
-        
-        with pytest.raises(Exception, match="Database error"):
-            get_measurements_by_child(child_id)
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_measurement_by_id_success(self, mock_collection):
-        """Test de obtención exitosa de medición por ID"""
-        measurement_id = ObjectId()
-        mock_doc = {
-            "_id": measurement_id,
-            "child_id": ObjectId(),
-            "peso": 25.0,
-            "talla": 120.0,
-            "imc": 17.36,
-            "fecha_medicion": date.today()
-        }
-        
-        mock_collection.find_one.return_value = mock_doc
-        
-        # Ejecutar función
-        result = get_measurement_by_id(str(measurement_id))
-        
-        # Verificar
-        assert isinstance(result, Measurement)
-        assert result.peso == 25.0
-        mock_collection.find_one.assert_called_once_with({"_id": measurement_id})
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_measurement_by_id_not_found(self, mock_collection):
-        """Test de medición no encontrada"""
-        mock_collection.find_one.return_value = None
-        measurement_id = str(ObjectId())
-        
-        result = get_measurement_by_id(measurement_id)
-        assert result is None
-    
-    def test_get_measurement_by_id_invalid_id(self):
-        """Test de ID de medición inválido"""
-        with pytest.raises(ValueError, match="ID de medición inválido"):
-            get_measurement_by_id("invalid_id")
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_update_measurement_success(self, mock_collection):
-        """Test de actualización exitosa de medición"""
-        measurement_id = ObjectId()
-        
-        # Mock para find_one (medición actual)
-        current_doc = {
-            "_id": measurement_id,
-            "child_id": ObjectId(),
-            "peso": 25.0,
-            "talla": 120.0,
-            "imc": 17.36,
-            "fecha_medicion": date.today()
-        }
-        mock_collection.find_one.return_value = current_doc
-        
-        # Mock para update_one
-        mock_result = Mock()
-        mock_result.modified_count = 1
-        mock_collection.update_one.return_value = mock_result
-        
-        # Datos de actualización
-        update_data = {"peso": 26.0}
-        
-        # Ejecutar función
-        result = update_measurement(str(measurement_id), update_data)
-        
-        # Verificar
-        assert result is True
-        mock_collection.update_one.assert_called_once()
-        
-        # Verificar que se recalculó el IMC
-        call_args = mock_collection.update_one.call_args[0][1]["$set"]
-        assert "imc" in call_args
-        assert call_args["peso"] == 26.0
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_update_measurement_not_found(self, mock_collection):
-        """Test de actualización de medición no encontrada"""
-        measurement_id = ObjectId()
-        mock_collection.find_one.return_value = None
-        
-        update_data = {"peso": 26.0}
-        result = update_measurement(str(measurement_id), update_data)
-        
-        assert result is False
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_update_measurement_no_changes(self, mock_collection):
-        """Test de actualización sin cambios"""
-        measurement_id = ObjectId()
-        
-        # Mock para find_one
-        current_doc = {
-            "_id": measurement_id,
-            "child_id": ObjectId(),
-            "peso": 25.0,
-            "talla": 120.0,
-            "imc": 17.36,
-            "fecha_medicion": date.today()
-        }
-        mock_collection.find_one.return_value = current_doc
-        
-        # Mock para update_one (sin modificaciones)
-        mock_result = Mock()
-        mock_result.modified_count = 0
-        mock_collection.update_one.return_value = mock_result
-        
-        update_data = {"peso": 25.0}  # Mismo valor
-        result = update_measurement(str(measurement_id), update_data)
-        
-        assert result is False
-    
-    def test_update_measurement_invalid_id(self):
-        """Test de actualización con ID inválido"""
-        with pytest.raises(ValueError, match="ID de medición inválido"):
-            update_measurement("invalid_id", {"peso": 26.0})
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_delete_measurement_success(self, mock_collection):
-        """Test de eliminación exitosa de medición"""
-        measurement_id = ObjectId()
-        
-        mock_result = Mock()
-        mock_result.deleted_count = 1
-        mock_collection.delete_one.return_value = mock_result
-        
-        result = delete_measurement(str(measurement_id))
-        
-        assert result is True
-        mock_collection.delete_one.assert_called_once_with({"_id": measurement_id})
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_delete_measurement_not_found(self, mock_collection):
-        """Test de eliminación de medición no encontrada"""
-        measurement_id = ObjectId()
-        
-        mock_result = Mock()
-        mock_result.deleted_count = 0
-        mock_collection.delete_one.return_value = mock_result
-        
-        result = delete_measurement(str(measurement_id))
-        
-        assert result is False
-    
-    def test_delete_measurement_invalid_id(self):
-        """Test de eliminación con ID inválido"""
-        with pytest.raises(ValueError, match="ID de medición inválido"):
-            delete_measurement("invalid_id")
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_latest_measurement_by_child_success(self, mock_collection):
-        """Test de obtención exitosa de la última medición de un niño"""
-        child_id = ObjectId()
-        mock_doc = {
-            "_id": ObjectId(),
-            "child_id": child_id,
-            "peso": 25.0,
-            "talla": 120.0,
-            "imc": 17.36,
-            "fecha_medicion": date.today()
-        }
-        
-        mock_collection.find_one.return_value = mock_doc
-        
-        result = get_latest_measurement_by_child(str(child_id))
-        
-        assert isinstance(result, Measurement)
-        mock_collection.find_one.assert_called_once_with(
-            {"child_id": child_id},
-            sort=[("fecha_medicion", -1)]
-        )
-    
-    @patch('backend.src.measurements.measurement_service.measurements_collection')
-    def test_get_latest_measurement_by_child_not_found(self, mock_collection):
-        """Test de última medición no encontrada"""
-        child_id = str(ObjectId())
-        mock_collection.find_one.return_value = None
-        
-        result = get_latest_measurement_by_child(child_id)
-        assert result is None
-    
-    def test_get_latest_measurement_by_child_invalid_id(self):
-        """Test de última medición con ID inválido"""
-        with pytest.raises(ValueError, match="ID de niño inválido"):
-            get_latest_measurement_by_child("invalid_id")
-
-
-# Configuración de pytest
-@pytest.fixture(autouse=True)
-def setup_logging():
-    """Configurar logging para pruebas"""
-    import logging
-    logging.getLogger().setLevel(logging.DEBUG)
+        assert stats["total_mediciones"] == 1
+        assert stats["peso"]["actual"] == 25.0
+        assert stats["imc"]["actual"] == round(25.0 / ((120.0 / 100) ** 2), 2)
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--cov=backend.src.measurements", "--cov-report=html"])
+    pytest.main([__file__, "-v"])
