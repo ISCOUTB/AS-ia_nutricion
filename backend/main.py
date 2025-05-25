@@ -9,10 +9,10 @@ app = FastAPI(    title="Nutrikids API",
     description="API para autenticación y manejo de usuarios",
     version="1.0.0"
 )
-app.include_router(auth_router, prefix="/auth", tags=["Autenticación"])
-app.include_router(child_router, prefix="/children", tags=["Niños"])
-app.include_router(measurement_router, prefix="/measurements", tags=["Mediciones"])
-app.include_router(report_router, prefix="/reports", tags=["Reportes"])
+app.include_router(auth_router, tags=["Autenticación"])
+app.include_router(child_router, tags=["Niños"])
+app.include_router(measurement_router, tags=["Mediciones"])
+app.include_router(report_router, tags=["Reportes"])
 
 
 origins = [

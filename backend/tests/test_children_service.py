@@ -18,11 +18,12 @@ def mock_children_collection(monkeypatch):
     mock_db = mock_client.db
     mock_collection = mock_db["ninos"]
     
-    # Mock para otras colecciones relacionadas
-    mock_db["datos_antropometricos"] = mongomock.MongoClient().db["datos_antropometricos"]
-    mock_db["datos_conductuales"] = mongomock.MongoClient().db["datos_conductuales"]
-    mock_db["historial_medico"] = mongomock.MongoClient().db["historial_medico"]
-    mock_db["resultados_clasificacion"] = mongomock.MongoClient().db["resultados_clasificacion"]
+    # Las colecciones se crean automáticamente al accederlas, no necesitan asignación directa
+    # Solo necesitamos asegurar que existan
+    mock_db["datos_antropometricos"]
+    mock_db["datos_conductuales"] 
+    mock_db["historial_medico"]
+    mock_db["resultados_clasificacion"]
     
     monkeypatch.setattr(child_service, "children_collection", mock_collection)
     monkeypatch.setattr(child_service, "db", mock_db)
@@ -37,7 +38,7 @@ def valid_child_data():
         tipo_documento="TI",
         documento="1234567890",
         fecha_nacimiento=date(2010, 5, 15),
-        sexo=SexoEnum.M,
+        sexo=SexoEnum.MASCULINO,
         direccion="Calle 123 #45-67",
         institucion="Colegio San José",
         barrio="Centro",
@@ -56,7 +57,7 @@ def minimal_child_data():
         tipo_documento="RC",
         documento="9876543210",
         fecha_nacimiento=date(2015, 8, 20),
-        sexo=SexoEnum.F,
+        sexo=SexoEnum.FEMENINO,
         direccion="Carrera 10 #20-30",
         nombre_acudiente="Carlos López",
         telefono_acudiente="3109876543",
@@ -100,7 +101,7 @@ def test_create_child_duplicate_document(valid_child_data):
         tipo_documento="TI",
         documento="1234567890",  # Mismo documento
         fecha_nacimiento=date(2011, 3, 10),
-        sexo=SexoEnum.M,
+        sexo=SexoEnum.MASCULINO,
         direccion="Otra dirección",
         nombre_acudiente="Ana Martínez",
         telefono_acudiente="3002222222",
@@ -297,8 +298,8 @@ def test_delete_child_success(valid_child_data):
     
     # Agregar algunos datos relacionados
     obj_id = ObjectId(child_id)
-    child_service.db["datos_antropometricos"].insert_one({"child_id": obj_id, "weight": 25})
-    child_service.db["datos_conductuales"].insert_one({"child_id": obj_id, "behavior": "calm"})
+    child_service.db["anthropometric_data"].insert_one({"child_id": obj_id, "weight": 25})
+    child_service.db["behavioral_data"].insert_one({"child_id": obj_id, "behavior": "calm"})
     
     result = child_service.delete_child(child_id)
     assert result is True
@@ -308,8 +309,8 @@ def test_delete_child_success(valid_child_data):
     assert deleted_child is None
     
     # Verificar que los datos relacionados fueron eliminados
-    assert child_service.db["datos_antropometricos"].find_one({"child_id": obj_id}) is None
-    assert child_service.db["datos_conductuales"].find_one({"child_id": obj_id}) is None
+    assert child_service.db["anthropometric_data"].find_one({"child_id": obj_id}) is None
+    assert child_service.db["behavioral_data"].find_one({"child_id": obj_id}) is None
 
 def test_delete_child_not_found():
     """Test eliminar niño que no existe"""
@@ -327,7 +328,7 @@ def test_delete_child_with_related_data_error(valid_child_data):
     child_id = child_service.create_child(valid_child_data)
     
     # Mock error en eliminación de datos relacionados
-    with patch.object(child_service.db["datos_antropometricos"], 'delete_many', side_effect=Exception("Related data error")):
+    with patch.object(child_service.db["anthropometric_data"], 'delete_many', side_effect=Exception("Related data error")):
         result = child_service.delete_child(child_id)
         # Debería continuar y eliminar el niño principal
         assert result is True
@@ -393,11 +394,11 @@ def test_search_children_by_sexo(valid_child_data, minimal_child_data):
     
     results = child_service.search_children(sexo="M")
     assert len(results) == 1
-    assert results[0].sexo == SexoEnum.M
+    assert results[0].sexo == SexoEnum.MASCULINO
     
     results = child_service.search_children(sexo="F")
     assert len(results) == 1
-    assert results[0].sexo == SexoEnum.F
+    assert results[0].sexo == SexoEnum.FEMENINO
 
 def test_search_children_multiple_criteria(valid_child_data, minimal_child_data):
     """Test buscar niños con múltiples criterios"""
@@ -407,7 +408,7 @@ def test_search_children_multiple_criteria(valid_child_data, minimal_child_data)
     results = child_service.search_children(nombre="Juan", sexo="M")
     assert len(results) == 1
     assert results[0].nombre == "Juan Carlos"
-    assert results[0].sexo == SexoEnum.M
+    assert results[0].sexo == SexoEnum.MASCULINO
 
 def test_search_children_no_results():
     """Test búsqueda sin resultados"""
@@ -456,7 +457,7 @@ def test_edge_cases_update_no_modified():
         tipo_documento="TI",
         documento="123",
         fecha_nacimiento=date(2010, 1, 1),
-        sexo=SexoEnum.M,
+        sexo=SexoEnum.MASCULINO,
         direccion="Test",
         nombre_acudiente="Test",
         telefono_acudiente="3001234567",
@@ -487,7 +488,7 @@ def test_full_crud_workflow():
         tipo_documento="CC",
         documento="integration123",
         fecha_nacimiento=date(2012, 6, 15),
-        sexo=SexoEnum.F,
+        sexo=SexoEnum.FEMENINO,
         direccion="Test Address",
         institucion="Test School",
         nombre_acudiente="Parent Test",

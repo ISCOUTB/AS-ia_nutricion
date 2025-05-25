@@ -1,10 +1,31 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-import jwt
 import os
 import secrets
 from typing import Optional, Dict, Any
 import logging
+import jwt
+
+# Verificar que el módulo jwt es PyJWT
+try:
+    import jwt
+    # Verificar que es PyJWT y no otro paquete jwt
+    if not hasattr(jwt, 'encode') or not hasattr(jwt, 'decode'):
+        raise ImportError("El módulo jwt importado no es PyJWT")
+    
+    # Verificar versión si es necesario
+    if hasattr(jwt, '__version__'):
+        print(f"Using PyJWT version: {jwt.__version__}")
+    
+except ImportError as e:
+    print(f"Error importing PyJWT: {e}")
+    # Intentar import alternativo si tienes problemas
+    try:
+        from jwt import PyJWT
+        jwt = PyJWT()
+    except ImportError:
+        raise ImportError("No se pudo importar PyJWT. Instala con: pip install PyJWT")
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,20 +69,57 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_jwt(data: Dict[str, Any], expires_delta: timedelta, secret_key: str) -> str:
     """Crear JWT con datos y tiempo de expiración"""
     try:
+        # DEBUG: Información detallada del módulo jwt
+        print(f"DEBUG - JWT Module: {jwt}")
+        print(f"DEBUG - JWT Name: {getattr(jwt, '__name__', 'N/A')}")
+        print(f"DEBUG - JWT File: {getattr(jwt, '__file__', 'N/A')}")
+        print(f"DEBUG - JWT Version: {getattr(jwt, '__version__', 'N/A')}")
+        print(f"DEBUG - JWT Dir: {dir(jwt)}")
+        print(f"DEBUG - Has encode: {hasattr(jwt, 'encode')}")
+        
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
-        to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
-        return jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
+        to_encode.update({
+            "exp": expire.timestamp(),
+            "iat": datetime.now(timezone.utc).timestamp()
+        })
+        
+        # Verificar que tenemos el método encode
+        if not hasattr(jwt, 'encode'):
+            raise AttributeError("JWT library no tiene método encode")
+            
+        encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
+        
+        # PyJWT v2.0+ devuelve string, versiones anteriores bytes
+        if isinstance(encoded_jwt, bytes):
+            encoded_jwt = encoded_jwt.decode('utf-8')
+            
+        return encoded_jwt
+        
     except Exception as e:
         logger.error(f"Error al crear JWT: {e}")
-        raise ValueError("Error al crear token")
+        logger.error(f"JWT module: {jwt.__name__ if hasattr(jwt, '__name__') else 'unknown'}")
+        logger.error(f"JWT version: {getattr(jwt, '__version__', 'unknown')}")
+        raise ValueError(f"Error al crear token: {str(e)}")
 
 # Decodificar un JWT
 def decode_jwt(token: str, secret_key: str) -> Optional[Dict[str, Any]]:
     """Decodificar JWT y validar"""
     try:
+        # Verificar que tenemos el método decode
+        if not hasattr(jwt, 'decode'):
+            raise AttributeError("JWT library no tiene método decode")
+            
         payload = jwt.decode(token, secret_key, algorithms=[ALGORITHM])
+        
+        # Convertir timestamps de vuelta a datetime si es necesario
+        if 'exp' in payload and isinstance(payload['exp'], (int, float)):
+            payload['exp'] = datetime.fromtimestamp(payload['exp'], tz=timezone.utc)
+        if 'iat' in payload and isinstance(payload['iat'], (int, float)):
+            payload['iat'] = datetime.fromtimestamp(payload['iat'], tz=timezone.utc)
+            
         return payload
+        
     except jwt.ExpiredSignatureError:
         logger.warning("Token expirado")
         return None

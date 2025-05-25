@@ -390,7 +390,13 @@ class TestAuthService:
         # Verificar que la cuenta está bloqueada
         user = auth_service.get_user_by_email("test16@example.com")
         assert user.get("locked_until") is not None
-        assert user.get("locked_until") > datetime.now(timezone.utc)
+        
+        # Fix para Cosmos DB datetime comparison
+        locked_until = user.get("locked_until")
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        
+        assert locked_until > datetime.now(timezone.utc)
 
 
 class TestAuthRoutes:
