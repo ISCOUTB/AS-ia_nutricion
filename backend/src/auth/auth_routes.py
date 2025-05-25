@@ -8,7 +8,8 @@ from .auth_models import (
     UserOut, 
     PasswordChange, 
     PasswordReset, 
-    PasswordResetConfirm
+    PasswordResetConfirm,
+    RefreshTokenRequest
 )
 from .auth_utils import verify_access_token
 from typing import Dict, List
@@ -168,11 +169,11 @@ async def login_with_json(user_login: UserLogin, request: Request):
         )
 
 @auth_router.post("/refresh", response_model=Token)
-async def refresh_token(refresh_token: str, request: Request):
+async def refresh_token(token_request: RefreshTokenRequest, request: Request):
     """Renovar token de acceso usando refresh token"""
     try:
         client_ip = get_client_ip(request)
-        result = auth_service.refresh_access_token(refresh_token, client_ip)
+        result = auth_service.refresh_access_token(token_request.refresh_token, client_ip)
         
         if not result:
             raise HTTPException(

@@ -41,6 +41,9 @@ class Token(BaseModel):
     refresh_token: Optional[str] = None
     token_type: str = "bearer"
     expires_in: int  # segundos hasta expiración
+    
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
 
 # Para extraer datos del token (ej: en dependencias de seguridad)
 class TokenData(BaseModel):

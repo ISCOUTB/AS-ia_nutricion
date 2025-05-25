@@ -18,7 +18,7 @@ def main():
     
     # 1. Verificar instalaciones de pip
     print("1. Verificando paquetes instalados:")
-    stdout, stderr, _ = run_command("pip list | grep -i jwt")
+    stdout, _, _ = run_command("pip list | grep -i jwt")
     if stdout:
         print(stdout)
     else:
