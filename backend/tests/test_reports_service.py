@@ -20,7 +20,7 @@ class TestCalcularEdad:
     def test_calcular_edad_cumpleanos_pasado(self):
         """Test cuando el cumpleaños ya pasó este año"""
         fecha_nacimiento = date(2015, 1, 1)
-        with patch('reports.report_service.date') as mock_date:
+        with patch('backend.src.reports.report_service.date') as mock_date:
             mock_date.today.return_value = date(2024, 6, 1)
             mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
             edad = calcular_edad(fecha_nacimiento)
@@ -29,7 +29,7 @@ class TestCalcularEdad:
     def test_calcular_edad_cumpleanos_no_pasado(self):
         """Test cuando el cumpleaños no ha pasado este año"""
         fecha_nacimiento = date(2015, 12, 1)
-        with patch('reports.report_service.date') as mock_date:
+        with patch('backend.src.reports.report_service.date') as mock_date:
             mock_date.today.return_value = date(2024, 6, 1)
             mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
             edad = calcular_edad(fecha_nacimiento)
@@ -38,7 +38,7 @@ class TestCalcularEdad:
     def test_calcular_edad_mismo_dia(self):
         """Test cuando es exactamente el cumpleaños"""
         fecha_nacimiento = date(2015, 6, 1)
-        with patch('reports.report_service.date') as mock_date:
+        with patch('backend.src.reports.report_service.date') as mock_date:
             mock_date.today.return_value = date(2024, 6, 1)
             mock_date.side_effect = lambda *args, **kw: date(*args, **kw)
             edad = calcular_edad(fecha_nacimiento)
@@ -123,7 +123,7 @@ class TestBuildMatchFilter:
         result = _build_match_filter(filtros)
         assert result == {"barrio": "Centro"}
 
-    @patch('reports.report_service.date')
+    @patch('backend.src.reports.report_service.date')
     def test_filtro_edad_minima(self, mock_date):
         """Test filtro por edad mínima"""
         mock_date.today.return_value = date(2024, 6, 1)
@@ -134,7 +134,7 @@ class TestBuildMatchFilter:
         expected_date = date(2019, 6, 1)  # 2024 - 5
         assert result == {"fecha_nacimiento": {"$lte": expected_date}}
 
-    @patch('reports.report_service.date')
+    @patch('backend.src.reports.report_service.date')
     def test_filtro_edad_maxima(self, mock_date):
         """Test filtro por edad máxima"""
         mock_date.today.return_value = date(2024, 6, 1)
@@ -145,7 +145,7 @@ class TestBuildMatchFilter:
         expected_date = date(2013, 6, 1)  # 2024 - 10 - 1
         assert result == {"fecha_nacimiento": {"$gte": expected_date}}
 
-    @patch('reports.report_service.date')
+    @patch('backend.src.reports.report_service.date')
     def test_filtro_rango_edad_completo(self, mock_date):
         """Test filtro con rango de edad completo"""
         mock_date.today.return_value = date(2024, 6, 1)
@@ -165,9 +165,9 @@ class TestBuildMatchFilter:
 class TestGenerarReporteIndividual:
     """Tests para generar_reporte_individual"""
     
-    @patch('reports.report_service.children_col')
-    @patch('reports.report_service.measurements_col')
-    @patch('reports.report_service.classification_col')
+    @patch('backend.src.reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.measurements_col')
+    @patch('backend.src.reports.report_service.classification_col')
     def test_reporte_individual_exitoso(self, mock_classification, mock_measurements, mock_children):
         """Test generación exitosa de reporte individual"""
         child_id = "507f1f77bcf86cd799439011"
@@ -209,7 +209,7 @@ class TestGenerarReporteIndividual:
             }
         ]
         
-        with patch('reports.report_service.calcular_edad', return_value=9):
+        with patch('backend.src.reports.report_service.calcular_edad', return_value=9):
             reporte = generar_reporte_individual(child_id)
         
         assert reporte.child_id == child_id
@@ -224,7 +224,7 @@ class TestGenerarReporteIndividual:
         assert reporte.ultima_clasificacion == "normal"
         assert reporte.tendencia_imc == "empeorando"  # 20.6 - 20.0 = 0.6 > 0.5
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_reporte_individual_nino_no_encontrado(self, mock_children):
         """Test cuando el niño no existe"""
         mock_children.find_one.return_value = None
@@ -232,7 +232,7 @@ class TestGenerarReporteIndividual:
         with pytest.raises(ValueError, match="no encontrado"):
             generar_reporte_individual("507f1f77bcf86cd799439011")
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_reporte_individual_sin_mediciones(self, mock_children):
         """Test reporte sin mediciones ni clasificaciones"""
         child_id = "507f1f77bcf86cd799439011"
@@ -245,9 +245,9 @@ class TestGenerarReporteIndividual:
             "sexo": "F"
         }
         
-        with patch('reports.report_service.measurements_col') as mock_measurements, \
-             patch('reports.report_service.classification_col') as mock_classification, \
-             patch('reports.report_service.calcular_edad', return_value=8):
+        with patch('backend.src.reports.report_service.measurements_col') as mock_measurements, \
+             patch('backend.src.reports.report_service.classification_col') as mock_classification, \
+             patch('backend.src.reports.report_service.calcular_edad', return_value=8):
             
             mock_measurements.find.return_value.sort.return_value = []
             mock_classification.find.return_value.sort.return_value = []
@@ -264,7 +264,7 @@ class TestGenerarReporteIndividual:
 class TestGetEstadisticasSexo:
     """Tests para _get_estadisticas_sexo"""
     
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_estadisticas_sexo(self, mock_children):
         """Test estadísticas por sexo"""
         mock_children.aggregate.return_value = [
@@ -278,7 +278,7 @@ class TestGetEstadisticasSexo:
         assert result.femenino == 12
         assert result.total == 27
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_estadisticas_sexo_vacio(self, mock_children):
         """Test estadísticas por sexo sin datos"""
         mock_children.aggregate.return_value = []
@@ -293,7 +293,7 @@ class TestGetEstadisticasSexo:
 class TestGetEstadisticasNutricionales:
     """Tests para _get_estadisticas_nutricionales"""
     
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_estadisticas_nutricionales_completas(self, mock_children):
         """Test estadísticas nutricionales completas"""
         mock_children.aggregate.return_value = [
@@ -315,7 +315,7 @@ class TestGetEstadisticasNutricionales:
         assert result.obesidad == 2
         assert result.total == 35
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_estadisticas_nutricionales_vacias(self, mock_children):
         """Test estadísticas nutricionales sin datos"""
         mock_children.aggregate.return_value = []
@@ -329,7 +329,7 @@ class TestGetEstadisticasNutricionales:
 class TestGetPromedios:
     """Tests para _get_promedios"""
     
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_promedios_con_datos(self, mock_children):
         """Test cálculo de promedios con datos"""
         mock_children.aggregate.return_value = [
@@ -345,7 +345,7 @@ class TestGetPromedios:
         assert imc == 18.5
         assert edad == 7.3
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_promedios_sin_datos(self, mock_children):
         """Test cálculo de promedios sin datos"""
         mock_children.aggregate.return_value = []
@@ -355,7 +355,7 @@ class TestGetPromedios:
         assert imc is None
         assert edad is None
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_promedios_con_nulos(self, mock_children):
         """Test cálculo de promedios con valores nulos"""
         mock_children.aggregate.return_value = [
@@ -375,7 +375,7 @@ class TestGetPromedios:
 class TestGetInstitucionesRepresentadas:
     """Tests para _get_instituciones_representadas"""
     
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_instituciones_representadas(self, mock_children):
         """Test obtener instituciones representadas"""
         mock_children.distinct.return_value = ["Escuela A", "Escuela B", None, "Jardín C"]
@@ -389,11 +389,11 @@ class TestGetInstitucionesRepresentadas:
 class TestGenerarReporteGrupal:
     """Tests para generar_reporte_grupal"""
     
-    @patch('reports.report_service._get_instituciones_representadas')
-    @patch('reports.report_service._get_promedios')
-    @patch('reports.report_service._get_estadisticas_nutricionales')
-    @patch('reports.report_service._get_estadisticas_sexo')
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service._get_instituciones_representadas')
+    @patch('backend.src.reports.report_service._get_promedios')
+    @patch('backend.src.reports.report_service._get_estadisticas_nutricionales')
+    @patch('backend.src.reports.report_service._get_estadisticas_sexo')
+    @patch('backend.src.reports.report_service.children_col')
     def test_reporte_grupal_exitoso(self, mock_children, mock_sexo, mock_nutricional, 
                                    mock_promedios, mock_instituciones):
         """Test generación exitosa de reporte grupal"""
@@ -413,18 +413,18 @@ class TestGenerarReporteGrupal:
         assert reporte.promedio_edad == 7.2
         assert len(reporte.instituciones_representadas) == 2
 
-    @patch('reports.report_service._build_match_filter')
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service._build_match_filter')
+    @patch('backend.src.reports.report_service.children_col')
     def test_reporte_grupal_con_filtros(self, mock_children, mock_filter):
         """Test reporte grupal con filtros"""
         filtros = ReportFilter(sexo="M", institucion="Escuela A")
         mock_filter.return_value = {"sexo": "M", "institucion": "Escuela A"}
         mock_children.count_documents.return_value = 15
         
-        with patch('reports.report_service._get_estadisticas_sexo') as mock_sexo, \
-             patch('reports.report_service._get_estadisticas_nutricionales') as mock_nutricional, \
-             patch('reports.report_service._get_promedios') as mock_promedios, \
-             patch('reports.report_service._get_instituciones_representadas') as mock_instituciones:
+        with patch('backend.src.reports.report_service._get_estadisticas_sexo') as mock_sexo, \
+             patch('backend.src.reports.report_service._get_estadisticas_nutricionales') as mock_nutricional, \
+             patch('backend.src.reports.report_service._get_promedios') as mock_promedios, \
+             patch('backend.src.reports.report_service._get_instituciones_representadas') as mock_instituciones:
             
             mock_sexo.return_value = EstadisticasSexo(masculino=15, total=15)
             mock_nutricional.return_value = EstadisticasNutricionales(normal=12, total=15)
@@ -440,8 +440,8 @@ class TestGenerarReporteGrupal:
 class TestGenerarReporteSeguimiento:
     """Tests para generar_reporte_seguimiento"""
     
-    @patch('reports.report_service.children_col')
-    @patch('reports.report_service.measurements_col')
+    @patch('backend.src.reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.measurements_col')
     def test_reporte_seguimiento_exitoso(self, mock_measurements, mock_children):
         """Test generación exitosa de reporte de seguimiento"""
         child_id = "507f1f77bcf86cd799439011"
@@ -480,7 +480,7 @@ class TestGenerarReporteSeguimiento:
         assert reporte.cambio_imc == 0.1
         assert reporte.meses_seguimiento == pytest.approx(2.0, abs=0.1)
 
-    @patch('reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.children_col')
     def test_reporte_seguimiento_nino_no_encontrado(self, mock_children):
         """Test reporte de seguimiento cuando el niño no existe"""
         mock_children.find_one.return_value = None
@@ -488,8 +488,8 @@ class TestGenerarReporteSeguimiento:
         with pytest.raises(ValueError, match="no encontrado"):
             generar_reporte_seguimiento("507f1f77bcf86cd799439011")
 
-    @patch('reports.report_service.children_col')
-    @patch('reports.report_service.measurements_col')
+    @patch('backend.src.reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.measurements_col')
     def test_reporte_seguimiento_sin_mediciones(self, mock_measurements, mock_children):
         """Test reporte de seguimiento sin mediciones"""
         child_id = "507f1f77bcf86cd799439011"
@@ -508,8 +508,8 @@ class TestGenerarReporteSeguimiento:
         assert reporte.primera_medicion is None
         assert reporte.cambio_peso is None
 
-    @patch('reports.report_service.children_col')
-    @patch('reports.report_service.measurements_col')  
+    @patch('backend.src.reports.report_service.children_col')
+    @patch('backend.src.reports.report_service.measurements_col')  
     def test_reporte_seguimiento_una_medicion(self, mock_measurements, mock_children):
         """Test reporte de seguimiento con una sola medición"""
         child_id = "507f1f77bcf86cd799439011"

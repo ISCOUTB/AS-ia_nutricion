@@ -5,11 +5,52 @@ from pymongo.errors import DuplicateKeyError
 from .child_models import ChildCreate, ChildUpdate, ChildInDB, ChildInResponse, ChildSummary
 from typing import Optional, List
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 # Conexión a la colección de niños (usando el nombre correcto de tu estructura)
 children_collection = db["ninos"]
+
+def _prepare_child_data_for_db(child_dict: dict) -> dict:
+    """
+    Convierte los datos del niño a un formato compatible con MongoDB.
+    
+    Args:
+        child_dict: Diccionario con los datos del niño
+        
+    Returns:
+        dict: Diccionario preparado para MongoDB
+    """
+    # Convertir fecha a datetime para MongoDB
+    if 'fecha_nacimiento' in child_dict:
+        if hasattr(child_dict['fecha_nacimiento'], 'year'):  # Es un objeto date
+            # Convertir date a datetime para MongoDB
+            date_obj = child_dict['fecha_nacimiento']
+            child_dict['fecha_nacimiento'] = datetime.combine(date_obj, datetime.min.time())
+    
+    # Convertir enum a string
+    if 'sexo' in child_dict and hasattr(child_dict['sexo'], 'value'):  # Es un enum
+        child_dict['sexo'] = child_dict['sexo'].value
+    
+    return child_dict
+
+def _prepare_child_data_from_db(child_dict: dict) -> dict:
+    """
+    Convierte los datos desde MongoDB a formato Python.
+    
+    Args:
+        child_dict: Diccionario desde MongoDB
+        
+    Returns:
+        dict: Diccionario preparado para Python
+    """
+    # Convertir datetime de vuelta a date
+    if 'fecha_nacimiento' in child_dict:
+        if isinstance(child_dict['fecha_nacimiento'], datetime):
+            child_dict['fecha_nacimiento'] = child_dict['fecha_nacimiento'].date()
+    
+    return child_dict
 
 # === Crear nuevo niño ===
 def create_child(child_data: ChildCreate) -> str:
@@ -29,6 +70,9 @@ def create_child(child_data: ChildCreate) -> str:
     try:
         # Convertir el modelo Pydantic a dict
         child_dict = child_data.model_dump(exclude_unset=True)
+        
+        # Preparar datos para MongoDB
+        child_dict = _prepare_child_data_for_db(child_dict)
         
         # Insertar en la base de datos
         result = children_collection.insert_one(child_dict)
@@ -67,6 +111,9 @@ def get_all_children() -> List[ChildSummary]:
         
         for child in children_cursor:
             try:
+                # Preparar datos desde DB
+                child = _prepare_child_data_from_db(child)
+                
                 child_summary = ChildSummary(
                     id=child["_id"],
                     nombre=child["nombre"],
@@ -109,6 +156,9 @@ def get_child_by_id(child_id: str) -> Optional[ChildInResponse]:
         child = children_collection.find_one({"_id": obj_id})
         
         if child:
+            # Preparar datos desde DB
+            child = _prepare_child_data_from_db(child)
+            
             return ChildInResponse(
                 id=child["_id"],
                 nombre=child["nombre"],
@@ -162,6 +212,9 @@ def update_child(child_id: str, updated_data: ChildUpdate) -> bool:
         if not update_dict:
             logger.warning(f"No hay campos para actualizar en niño {child_id}")
             return False
+
+        # Preparar datos para MongoDB
+        update_dict = _prepare_child_data_for_db(update_dict)
 
         # Verificar que el documento existe
         existing = children_collection.find_one({"_id": obj_id})
@@ -311,6 +364,9 @@ def search_children(
         
         for child in children_cursor:
             try:
+                # Preparar datos desde DB
+                child = _prepare_child_data_from_db(child)
+                
                 child_summary = ChildSummary(
                     id=child["_id"],
                     nombre=child["nombre"],
