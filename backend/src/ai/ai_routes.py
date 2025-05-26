@@ -46,11 +46,15 @@ def predecir_estado(child_id: str, input_data: EstadoNutricionalInput, save_to_d
             "message": "Predicción realizada exitosamente"
         }
         
+    except HTTPException as e:
+        # Re-lanzar HTTPException tal cual
+        raise e
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        # Esto atrapará cualquier otra excepción no esperada
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail=f"Error interno del servidor: {str(e)}"
         )
 
