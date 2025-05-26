@@ -51,7 +51,7 @@ def get_all_measurements() -> List[Measurement]:
                 measurement = Measurement(**doc)
                 measurements.append(measurement)
             except Exception as e:
-                logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
+                #logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
                 continue
                 
         return measurements
@@ -81,7 +81,7 @@ def get_measurements_by_child(child_id: str) -> List[Measurement]:
                 measurement = Measurement(**doc)
                 measurements.append(measurement)
             except Exception as e:
-                logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
+                #logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
                 continue
                 
         return measurements
@@ -154,9 +154,11 @@ def update_measurement(measurement_id: str, updated_data: dict) -> bool:
         
         success = result.modified_count > 0
         if success:
-            logger.info(f"Medición {measurement_id} actualizada exitosamente")
+            #logger.info(f"Medición {measurement_id} actualizada exitosamente")
+            pass
         else:
-            logger.warning(f"No se pudo actualizar la medición {measurement_id}")
+            #logger.warning(f"No se pudo actualizar la medición {measurement_id}")
+            pass
             
         return success
         
@@ -178,9 +180,11 @@ def delete_measurement(measurement_id: str) -> bool:
         
         success = result.deleted_count > 0
         if success:
-            logger.info(f"Medición {measurement_id} eliminada exitosamente")
+            #logger.info(f"Medición {measurement_id} eliminada exitosamente")
+            pass
         else:
-            logger.warning(f"No se pudo eliminar la medición {measurement_id}")
+            #logger.warning(f"No se pudo eliminar la medición {measurement_id}")
+            pass
             
         return success
         
@@ -188,7 +192,7 @@ def delete_measurement(measurement_id: str) -> bool:
         logger.error(f"Error de validación: {e}")
         raise
     except Exception as e:
-        logger.error(f"Error eliminando medición {measurement_id}: {e}")
+        logger.error(f"Error eliminando medición: {e}")
         raise
 
 def get_latest_measurement_by_child(child_id: str) -> Optional[Measurement]:

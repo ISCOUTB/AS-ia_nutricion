@@ -88,7 +88,7 @@ async def obtener_reporte_seguimiento(child_id: str):
             detail=str(e)
         )
     except Exception as e:
-        #logger.error(f"Error generando reporte de seguimiento: {e}")
+        logger.error(f"Error generando reporte de seguimiento: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al generar el reporte"
@@ -132,7 +132,7 @@ async def obtener_estadisticas_rapidas():
             "ultima_clasificacion": ultima_clasificacion["fecha_resultado"] if ultima_clasificacion else None
         }
     except Exception as e:
-        #logger.error(f"Error obteniendo estadísticas rápidas: {e}")
+        logger.error(f"Error obteniendo estadísticas rápidas: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error obteniendo estadísticas"

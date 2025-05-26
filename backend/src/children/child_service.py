@@ -125,7 +125,7 @@ def get_all_children() -> List[ChildSummary]:
                 )
                 children_list.append(child_summary)
             except Exception as e:
-                logger.warning(f"Error procesando niño {child.get('_id', 'unknown')}: {e}")
+                #logger.warning(f"Error procesando niño {child.get('_id', 'unknown')}: {e}")
                 continue
         
         logger.info(f"Se obtuvieron {len(children_list)} niños")
@@ -149,7 +149,7 @@ def get_child_by_id(child_id: str) -> Optional[ChildInResponse]:
     try:
         obj_id = ObjectId(child_id)
     except InvalidId:
-        logger.warning(f"ID inválido proporcionado: {child_id}")
+        #logger.warning(f"ID inválido proporcionado: {child_id}")
         return None
 
     try:
@@ -202,7 +202,7 @@ def update_child(child_id: str, updated_data: ChildUpdate) -> bool:
     try:
         obj_id = ObjectId(child_id)
     except InvalidId:
-        logger.warning(f"ID inválido proporcionado para actualización: {child_id}")
+        #logger.warning(f"ID inválido proporcionado para actualización: {child_id}")
         return False
 
     try:
@@ -210,7 +210,7 @@ def update_child(child_id: str, updated_data: ChildUpdate) -> bool:
         update_dict = updated_data.model_dump(exclude_unset=True, exclude_none=True)
         
         if not update_dict:
-            logger.warning(f"No hay campos para actualizar en niño {child_id}")
+            #logger.warning(f"No hay campos para actualizar en niño {child_id}")
             return False
 
         # Preparar datos para MongoDB
@@ -219,7 +219,7 @@ def update_child(child_id: str, updated_data: ChildUpdate) -> bool:
         # Verificar que el documento existe
         existing = children_collection.find_one({"_id": obj_id})
         if not existing:
-            logger.warning(f"Niño no encontrado para actualización: {child_id}")
+            #logger.warning(f"Niño no encontrado para actualización: {child_id}")
             return False
 
         # Si se está actualizando documento, verificar que no exista otro igual
@@ -244,10 +244,12 @@ def update_child(child_id: str, updated_data: ChildUpdate) -> bool:
         
         success = result.modified_count > 0
         if success:
-            logger.info(f"Niño actualizado exitosamente: {child_id}")
+            #logger.info(f"Niño actualizado exitosamente: {child_id}")
+            pass
         else:
-            logger.warning(f"No se realizaron cambios en niño: {child_id}")
-            
+            #logger.warning(f"No se realizaron cambios en niño: {child_id}")
+            pass
+                    
         return success
         
     except ValueError:
@@ -274,14 +276,14 @@ def delete_child(child_id: str) -> bool:
     try:
         obj_id = ObjectId(child_id)
     except InvalidId:
-        logger.warning(f"ID inválido proporcionado para eliminación: {child_id}")
+        #logger.warning(f"ID inválido proporcionado para eliminación: {child_id}")
         return False
 
     try:
         # Verificar que el niño existe
         existing = children_collection.find_one({"_id": obj_id})
         if not existing:
-            logger.warning(f"Niño no encontrado para eliminación: {child_id}")
+            #logger.warning(f"Niño no encontrado para eliminación: {child_id}")
             return False
 
         # Eliminar datos relacionados primero
@@ -298,7 +300,8 @@ def delete_child(child_id: str) -> bool:
                 if result.deleted_count > 0:
                     logger.info(f"Eliminados {result.deleted_count} registros de {collection_name} para niño {child_id}")
             except Exception as e:
-                logger.warning(f"Error eliminando datos de {collection_name} para niño {child_id}: {e}")
+                #logger.warning(f"Error eliminando datos de {collection_name} para niño {child_id}: {e}")
+                continue
 
         # Eliminar el niño
         result = children_collection.delete_one({"_id": obj_id})
@@ -378,7 +381,7 @@ def search_children(
                 )
                 children_list.append(child_summary)
             except Exception as e:
-                logger.warning(f"Error procesando niño en búsqueda {child.get('_id', 'unknown')}: {e}")
+                #logger.warning(f"Error procesando niño en búsqueda {child.get('_id', 'unknown')}: {e}")
                 continue
         
         logger.info(f"Búsqueda completada: {len(children_list)} niños encontrados")
