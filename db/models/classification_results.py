@@ -51,9 +51,8 @@ class ClassificationResultCreate(BaseModel):
 
     @field_validator('confidence_score')
     def validate_confidence_score(cls, v):
-        if v is not None:
-            if not (0 <= v <= 1):
-                raise ValueError('El score de confianza debe estar entre 0 y 1')
+        if v is not None and not (0 <= v <= 1):
+            raise ValueError('El score de confianza debe estar entre 0 y 1')
         return v
 
 
