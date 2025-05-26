@@ -4,6 +4,7 @@ from src.auth.auth_routes import auth_router
 from src.children.child_routes import child_router
 from src.measurements.measurement_routes import measurement_router
 from src.reports.report_routes import report_router
+from src.ai.ai_routes import ai_router
 
 app = FastAPI(    title="Nutrikids API",
     description="API para autenticación y manejo de usuarios",
@@ -13,6 +14,7 @@ app.include_router(auth_router, tags=["Autenticación"])
 app.include_router(child_router, tags=["Niños"])
 app.include_router(measurement_router, tags=["Mediciones"])
 app.include_router(report_router, tags=["Reportes"])
+app.include_router(ai_router, tags=["Inteligencia Artificial"])
 
 
 origins = [
