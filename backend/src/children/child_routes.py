@@ -161,7 +161,7 @@ def update_child_data(child_id: str, updated_data: ChildUpdate):
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No se encontró ningún niño con ID"
+                detail=f"No se encontró ningún niño con ID: {child_id}"
             )
         
         return {
@@ -209,7 +209,7 @@ def delete_child_record(child_id: str):
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No se encontró ningún niño con ID"
+                detail=f"No se encontró ningún niño con ID: {child_id}"
             )
         
         return {

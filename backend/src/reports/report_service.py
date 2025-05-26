@@ -116,7 +116,7 @@ def generar_reporte_individual(child_id: str) -> ReporteIndividual:
         return reporte
 
     except Exception as e:
-        logger.error(f"Error generando reporte individual para {child_id}: {e}")
+        logger.error(f"Error generando reporte individual: {e}")
         raise
 
 
@@ -331,9 +331,9 @@ def generar_reporte_seguimiento(child_id: str) -> ReporteSeguimiento:
             meses_seguimiento=meses_seguimiento
         )
         
-        logger.info(f"Reporte de seguimiento generado para niño {child_id}")
+        logger.info("Reporte de seguimiento generado para niño {child_id}")
         return reporte
 
     except Exception as e:
-        logger.error(f"Error generando reporte de seguimiento para {child_id}: {e}")
+        logger.error(f"Error generando reporte de seguimiento para: {e}")
         raise

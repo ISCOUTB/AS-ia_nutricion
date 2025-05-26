@@ -98,7 +98,7 @@ def get_measurement_by_id(measurement_id: str) -> Optional[Measurement]:
     try:
         # Validar ObjectId
         if not ObjectId.is_valid(measurement_id):
-            raise ValueError(f"ID de medición inválido: {measurement_id}")
+            raise ValueError("ID de medición inválido")
             
         doc = measurements_collection.find_one({"_id": ObjectId(measurement_id)})
         
@@ -116,7 +116,7 @@ def get_measurement_by_id(measurement_id: str) -> Optional[Measurement]:
         logger.error(f"Error de validación: {e}")
         raise
     except Exception as e:
-        logger.error(f"Error obteniendo medición {measurement_id}: {e}")
+        logger.error(f"Error obteniendo medición: {e}")
         raise
 
 def update_measurement(measurement_id: str, updated_data: dict) -> bool:
@@ -124,7 +124,7 @@ def update_measurement(measurement_id: str, updated_data: dict) -> bool:
     try:
         # Validar ObjectId
         if not ObjectId.is_valid(measurement_id):
-            raise ValueError(f"ID de medición inválido: {measurement_id}")
+            raise ValueError("ID de medición inválido")
         
         # Crear una copia para no modificar el original
         update_data = updated_data.copy()
@@ -154,7 +154,7 @@ def update_measurement(measurement_id: str, updated_data: dict) -> bool:
         
         success = result.modified_count > 0
         if success:
-            logger.info("Medición actualizada exitosamente")
+            logger.info("Medición actualizada exitosamente con ID: %s", measurement_id)
         else:
             logger.warning("No se pudo actualizar la medición ")
             

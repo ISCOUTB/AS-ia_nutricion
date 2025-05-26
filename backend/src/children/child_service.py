@@ -176,7 +176,7 @@ def get_child_by_id(child_id: str) -> Optional[ChildInResponse]:
                 consentimiento_informado=child["consentimiento_informado"]
             )
         
-        logger.info(f"Niño no encontrado con ID")
+        logger.info(f"Niño no encontrado con ID {child_id}")
         return None
         
     except Exception as e:
@@ -292,7 +292,7 @@ def delete_child(child_id: str) -> bool:
             try:
                 result = db[collection_name].delete_many({"child_id": obj_id})
                 if result.deleted_count > 0:
-                    logger.info(f"Eliminados {result.deleted_count} registros de {collection_name} para niño")
+                    logger.info(f"Eliminados {result.deleted_count} registros de {collection_name} para niño ID: {child_id}")
             except Exception as e:
                 logger.warning(f"Error eliminando datos de {collection_name} para niño: {e}")
                 continue
@@ -302,7 +302,7 @@ def delete_child(child_id: str) -> bool:
         
         success = result.deleted_count > 0
         if success:
-            logger.info("Niño eliminado exitosamente")
+            logger.info("Niño eliminado exitosamente con ID: %s", child_id)
         
         return success
         

@@ -624,7 +624,7 @@ class TestAuthRoutes:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost:8000") as client:
             # Registrar admin
             register_response = await client.post("/auth/register", json={
-                "email": "admin222223@example.com",
+                "email": "admin33@example.com",
                 "password": "AdminPass123",
                 "role_name": "admin"
             })
@@ -632,7 +632,7 @@ class TestAuthRoutes:
 
             # Login como admin  
             login_response = await client.post("/auth/login", data={
-                "username": "admin222223@example.com",
+                "username": "admin33@example.com",
                 "password": "AdminPass123"
             })
             print(f"🔑 Login: {login_response.json()}")
