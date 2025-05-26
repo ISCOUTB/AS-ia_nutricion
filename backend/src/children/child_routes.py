@@ -37,13 +37,13 @@ def create_new_child(child: ChildCreate):
             "status": "success"
         }
     except ValueError as e:
-        #logger.warning(f"Error de validación al crear niño: {e}")
+        logger.warning(f"Error de validación al crear niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        #logger.error(f"Error interno al crear niño: {e}")
+        logger.error(f"Error interno al crear niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al crear el niño"
@@ -60,7 +60,7 @@ def get_children_list():
     try:
         return get_all_children()
     except Exception as e:
-        #logger.error(f"Error obteniendo lista de niños: {e}")
+        logger.error(f"Error obteniendo lista de niños: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al obtener la lista de niños"
@@ -103,7 +103,7 @@ def search_children_by_criteria(
             sexo=sexo
         )
     except Exception as e:
-        #logger.error(f"Error en búsqueda de niños: {e}")
+        logger.error(f"Error en búsqueda de niños: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al buscar niños"
@@ -131,7 +131,7 @@ def get_child_details(child_id: str):
         # Re-raise HTTPException para mantener el status code
         raise
     except Exception as e:
-        #logger.error(f"Error obteniendo niño {child_id}: {e}")
+        logger.error(f"Error obteniendo niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al obtener el niño"
@@ -161,7 +161,7 @@ def update_child_data(child_id: str, updated_data: ChildUpdate):
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No se encontró ningún niño con ID: {child_id}"
+                detail="No se encontró ningún niño con ID"
             )
         
         return {
@@ -172,7 +172,7 @@ def update_child_data(child_id: str, updated_data: ChildUpdate):
         }
         
     except ValueError as e:
-        #logger.warning(f"Error de validación al actualizar niño {child_id}: {e}")
+        logger.warning(f"Error de validación al actualizar niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -181,7 +181,7 @@ def update_child_data(child_id: str, updated_data: ChildUpdate):
         # Re-raise HTTPException para mantener el status code
         raise
     except Exception as e:
-        #logger.error(f"Error interno al actualizar niño {child_id}: {e}")
+        logger.error(f"Error interno al actualizar niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al actualizar el niño"
@@ -209,7 +209,7 @@ def delete_child_record(child_id: str):
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No se encontró ningún niño con ID: {child_id}"
+                detail="No se encontró ningún niño con ID"
             )
         
         return {
@@ -222,7 +222,7 @@ def delete_child_record(child_id: str):
         # Re-raise HTTPException para mantener el status code
         raise
     except Exception as e:
-        #logger.error(f"Error interno al eliminar niño {child_id}: {e}")
+        logger.error(f"Error interno al eliminar niño: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al eliminar el niño"
@@ -249,7 +249,7 @@ def children_health_check():
         }
         
     except Exception as e:
-        #logger.error(f"Health check falló: {e}")
+        logger.error(f"Health check falló: {e}")
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={

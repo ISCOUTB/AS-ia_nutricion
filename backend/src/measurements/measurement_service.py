@@ -51,7 +51,7 @@ def get_all_measurements() -> List[Measurement]:
                 measurement = Measurement(**doc)
                 measurements.append(measurement)
             except Exception as e:
-                #logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
+                logger.warning(f"Error procesando documento: {e}")
                 continue
                 
         return measurements
@@ -65,7 +65,7 @@ def get_measurements_by_child(child_id: str) -> List[Measurement]:
     try:
         # Validar ObjectId
         if not ObjectId.is_valid(child_id):
-            raise ValueError(f"ID de niño inválido: {child_id}")
+            raise ValueError("ID de niño inválido")
             
         results = measurements_collection.find({"child_id": ObjectId(child_id)})
         measurements = []
@@ -81,7 +81,7 @@ def get_measurements_by_child(child_id: str) -> List[Measurement]:
                 measurement = Measurement(**doc)
                 measurements.append(measurement)
             except Exception as e:
-                #logger.warning(f"Error procesando documento {doc.get('_id')}: {e}")
+                logger.warning(f"Error procesando documento: {e}")
                 continue
                 
         return measurements
@@ -90,8 +90,8 @@ def get_measurements_by_child(child_id: str) -> List[Measurement]:
         logger.error(f"Error de validación: {e}")
         raise
     except Exception as e:
-        logger.error(f"Error obteniendo mediciones del niño {child_id}: {e}")
-        raise
+        logger.error(f"Error obteniendo mediciones del niño: {e}")
+        raise 
 
 def get_measurement_by_id(measurement_id: str) -> Optional[Measurement]:
     """Obtener una medición específica por su ID"""
@@ -154,11 +154,9 @@ def update_measurement(measurement_id: str, updated_data: dict) -> bool:
         
         success = result.modified_count > 0
         if success:
-            #logger.info(f"Medición {measurement_id} actualizada exitosamente")
-            pass
+            logger.info("Medición actualizada exitosamente")
         else:
-            #logger.warning(f"No se pudo actualizar la medición {measurement_id}")
-            pass
+            logger.warning("No se pudo actualizar la medición ")
             
         return success
         
@@ -166,7 +164,7 @@ def update_measurement(measurement_id: str, updated_data: dict) -> bool:
         logger.error(f"Error de validación: {e}")
         raise
     except Exception as e:
-        logger.error(f"Error actualizando medición {measurement_id}: {e}")
+        logger.error(f"Error actualizando medición: {e}")
         raise
 
 def delete_measurement(measurement_id: str) -> bool:
@@ -174,17 +172,11 @@ def delete_measurement(measurement_id: str) -> bool:
     try:
         # Validar ObjectId
         if not ObjectId.is_valid(measurement_id):
-            raise ValueError(f"ID de medición inválido: {measurement_id}")
+            raise ValueError("ID de medición inválido")
             
         result = measurements_collection.delete_one({"_id": ObjectId(measurement_id)})
         
         success = result.deleted_count > 0
-        if success:
-            #logger.info(f"Medición {measurement_id} eliminada exitosamente")
-            pass
-        else:
-            #logger.warning(f"No se pudo eliminar la medición {measurement_id}")
-            pass
             
         return success
         
@@ -199,7 +191,7 @@ def get_latest_measurement_by_child(child_id: str) -> Optional[Measurement]:
     """Obtener la medición más reciente de un niño"""
     try:
         if not ObjectId.is_valid(child_id):
-            raise ValueError(f"ID de niño inválido: {child_id}")
+            raise ValueError("ID de niño inválido")
             
         doc = measurements_collection.find_one(
             {"child_id": ObjectId(child_id)},
@@ -220,5 +212,5 @@ def get_latest_measurement_by_child(child_id: str) -> Optional[Measurement]:
         logger.error(f"Error de validación: {e}")
         raise
     except Exception as e:
-        logger.error(f"Error obteniendo última medición del niño {child_id}: {e}")
+        logger.error(f"Error obteniendo última medición del niño: {e}")
         raise
